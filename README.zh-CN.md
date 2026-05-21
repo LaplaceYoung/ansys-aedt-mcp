@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/logo/ansys-aedt-mcp-logo.png" alt="Ansys AEDT MCP Server logo" width="180">
+
 # Ansys AEDT MCP Server
 
 **面向 Ansys Electronics Desktop、PyAEDT、HFSS、Maxwell、Q3D、Icepak、Circuit、报告、参数扫描和仿真自动化的 MCP 服务器。**

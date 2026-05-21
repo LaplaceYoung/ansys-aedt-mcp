@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/logo/ansys-aedt-mcp-logo.png" alt="Ansys AEDT MCP Server logo" width="180">
+
 # Ansys AEDT MCP Server
 
 **A Model Context Protocol server for Ansys Electronics Desktop, PyAEDT, HFSS, Maxwell, Q3D, Icepak, Circuit, reports, sweeps, and simulation automation.**
