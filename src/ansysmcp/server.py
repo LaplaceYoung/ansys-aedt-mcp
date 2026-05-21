@@ -12,7 +12,10 @@ from ansysmcp.operations import (
     assign_boundary_or_excitation,
     assign_material,
     batch_call,
+    change_design_settings,
+    change_validation_settings,
     circuit_operation,
+    cleanup_solution,
     create_dataset,
     create_field_plot,
     create_frequency_sweep,
@@ -51,6 +54,7 @@ from ansysmcp.operations import (
     invoke,
     list_api,
     list_projects,
+    list_variations,
     material_object_summary,
     maxwell_operation,
     mesh_operation,
@@ -59,7 +63,9 @@ from ansysmcp.operations import (
     native_get_property_value,
     native_module_call,
     new_project,
+    project_design_operation,
     q3d_operation,
+    read_design_data,
     run_app_method,
     set_active_design,
     set_active_project,
@@ -68,6 +74,7 @@ from ansysmcp.operations import (
     solve_in_batch,
     source_port_summary,
     update_setup,
+    validate_design,
 )
 from ansysmcp.serialization import to_jsonable
 from ansysmcp.session import AedtSessionManager, api_manifest, environment_report
@@ -552,6 +559,93 @@ def aedt_apply_solved_variation(variation: dict[str, Any]) -> dict[str, Any]:
     """Apply a solved variation dictionary to the active design context."""
     with manager.locked():
         return apply_solved_variation(manager, variation=variation)
+
+
+@mcp.tool()
+def aedt_validate_design(
+    validation_kind: Literal["simple", "full"] = "simple",
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run PyAEDT simple or full design validation."""
+    with manager.locked():
+        return validate_design(
+            manager,
+            validation_kind=validation_kind,
+            args=args,
+            kwargs=kwargs,
+        )
+
+
+@mcp.tool()
+def aedt_cleanup_solution(
+    variations: str | list[Any] = "All",
+    entire_solution: bool = True,
+    field: bool = True,
+    mesh: bool = True,
+    linked_data: bool = True,
+) -> dict[str, Any]:
+    """Clean solution data through PyAEDT cleanup_solution options."""
+    with manager.locked():
+        return cleanup_solution(
+            manager,
+            variations=variations,
+            entire_solution=entire_solution,
+            field=field,
+            mesh=mesh,
+            linked_data=linked_data,
+        )
+
+
+@mcp.tool()
+def aedt_change_design_settings(settings: dict[str, Any]) -> dict[str, Any]:
+    """Apply active design settings through PyAEDT change_design_settings."""
+    with manager.locked():
+        return change_design_settings(manager, settings=settings)
+
+
+@mcp.tool()
+def aedt_change_validation_settings(
+    entity_check_level: str = "Strict",
+    ignore_unclassified: bool = False,
+    skip_intersections: bool = False,
+) -> dict[str, Any]:
+    """Apply active design validation settings."""
+    with manager.locked():
+        return change_validation_settings(
+            manager,
+            entity_check_level=entity_check_level,
+            ignore_unclassified=ignore_unclassified,
+            skip_intersections=skip_intersections,
+        )
+
+
+@mcp.tool()
+def aedt_list_variations(
+    setup: str | None = None,
+    sweep: str | None = None,
+) -> dict[str, Any]:
+    """List solved or available variation strings for a setup and sweep."""
+    with manager.locked():
+        return list_variations(manager, setup=setup, sweep=sweep)
+
+
+@mcp.tool()
+def aedt_read_design_data() -> dict[str, Any]:
+    """Read PyAEDT design data dictionary for the active design."""
+    with manager.locked():
+        return read_design_data(manager)
+
+
+@mcp.tool()
+def aedt_project_design_operation(
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run an allowlisted project/design maintenance operation."""
+    with manager.locked():
+        return project_design_operation(manager, method=method, args=args, kwargs=kwargs)
 
 
 @mcp.tool()
@@ -1133,6 +1227,13 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_analyze_setup",
             "aedt_solve_in_batch",
             "aedt_apply_solved_variation",
+            "aedt_validate_design",
+            "aedt_cleanup_solution",
+            "aedt_change_design_settings",
+            "aedt_change_validation_settings",
+            "aedt_list_variations",
+            "aedt_read_design_data",
+            "aedt_project_design_operation",
             "aedt_get_nominal_variation",
             "aedt_get_evaluated_value",
             "aedt_get_output_variable",

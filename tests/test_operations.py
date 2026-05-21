@@ -8,7 +8,10 @@ from ansysmcp.operations import (
     assign_boundary_or_excitation,
     assign_material,
     batch_call,
+    change_design_settings,
+    change_validation_settings,
     circuit_operation,
+    cleanup_solution,
     create_dataset,
     create_field_plot,
     create_frequency_sweep,
@@ -39,6 +42,7 @@ from ansysmcp.operations import (
     invoke,
     list_api,
     list_projects,
+    list_variations,
     material_object_summary,
     maxwell_operation,
     mesh_operation,
@@ -47,7 +51,9 @@ from ansysmcp.operations import (
     native_get_property_value,
     native_module_call,
     new_project,
+    project_design_operation,
     q3d_operation,
+    read_design_data,
     set_active_design,
     set_active_project,
     set_variable,
@@ -55,6 +61,7 @@ from ansysmcp.operations import (
     solve_in_batch,
     source_port_summary,
     update_setup,
+    validate_design,
 )
 from ansysmcp.session import (
     AedtError,
@@ -168,6 +175,44 @@ class DummyApp:
 
     def solve_in_batch(self, file_name=None, machine="localhost", cores=4, setup=None):
         return {"file_name": file_name, "machine": machine, "cores": cores, "setup": setup}
+
+    def validate_simple(self, log_file=None):
+        return 1 if log_file else 0
+
+    def validate_full_design(self, design=None, output_dir=None, ports=None):
+        return [f"design={design}", f"ports={ports}"], True
+
+    def cleanup_solution(self, variations="All", entire_solution=True, field=True, mesh=True):
+        return {
+            "variations": variations,
+            "entire_solution": entire_solution,
+            "field": field,
+            "mesh": mesh,
+        }
+
+    def change_design_settings(self, settings):
+        return {"settings": settings}
+
+    def change_validation_settings(
+        self,
+        entity_check_level="Strict",
+        ignore_unclassified=False,
+        skip_intersections=False,
+    ):
+        return {
+            "entity_check_level": entity_check_level,
+            "ignore_unclassified": ignore_unclassified,
+            "skip_intersections": skip_intersections,
+        }
+
+    def list_of_variations(self, setup=None, sweep=None):
+        return [f"{setup}:{sweep}:w='10mm'"]
+
+    def read_design_data(self):
+        return {"design": "HFSSDesign1"}
+
+    def duplicate_design(self, name, save_after_duplicate=True):
+        return {"name": name, "save_after_duplicate": save_after_duplicate}
 
     def apply_solved_variation(self, variation):
         return {"applied": variation}
@@ -556,6 +601,38 @@ def test_analysis_control_wrappers_dispatch_to_app() -> None:
     assert setup["result"]["tasks"] == 2
     assert batch["result"]["file_name"] == "project.aedt"
     assert variation["result"]["applied"] == {"w": "10mm"}
+
+
+def test_design_validation_and_settings_wrappers_dispatch_to_app() -> None:
+    manager = active_manager()
+    validation = validate_design(
+        manager,
+        validation_kind="full",
+        kwargs={"design": "HFSSDesign1", "ports": 1},
+    )
+    cleanup = cleanup_solution(manager, variations="w=10mm", mesh=False)
+    design_settings = change_design_settings(manager, settings={"SolveMatrixAtLast": True})
+    validation_settings = change_validation_settings(
+        manager,
+        entity_check_level="Warning",
+        skip_intersections=True,
+    )
+    variations = list_variations(manager, setup="Setup1", sweep="Sweep1")
+    design_data = read_design_data(manager)
+    operation = project_design_operation(
+        manager,
+        method="duplicate_design",
+        args=["Copy1"],
+        kwargs={"save_after_duplicate": False},
+    )
+    assert validation["method"] == "validate_full_design"
+    assert validation["result"][1] is True
+    assert cleanup["result"]["mesh"] is False
+    assert design_settings["result"]["settings"]["SolveMatrixAtLast"] is True
+    assert validation_settings["result"]["entity_check_level"] == "Warning"
+    assert variations["variations"] == ["Setup1:Sweep1:w='10mm'"]
+    assert design_data["design_data"]["design"] == "HFSSDesign1"
+    assert operation["result"]["name"] == "Copy1"
 
 
 def test_value_profile_and_material_summaries_use_app_apis() -> None:

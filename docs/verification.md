@@ -18,9 +18,9 @@ uv run pytest
 uv run ansys-aedt-mcp --help
 ```
 
-Current test result: `30 passed`.
+Current test result: `31 passed`.
 
-MCP tool registration result: `69` tools.
+MCP tool registration result: `76` tools.
 
 ## Real AEDT Smoke
 

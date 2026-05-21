@@ -4,6 +4,7 @@
 
 - Add verified examples for Desktop/native workflows.
 - Add reusable solve-control examples for distributed setup solves, batch solves, solved variations, and profile reads.
+- Add project/design maintenance examples for validation, variation listing, settings updates, and design duplication.
 - Add focused wrappers for common native modules:
   - `AnalysisSetup`
   - `BoundarySetup`

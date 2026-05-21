@@ -185,6 +185,21 @@ MATRIX_EXPORT_METHODS = {
     "equivalent_circuit": "export_equivalent_circuit",
     "q3d_equivalent_circuit": "export_equivalent_circuit",
 }
+PROJECT_DESIGN_OPERATION_METHODS = {
+    "archive_project",
+    "change_design_settings",
+    "change_validation_settings",
+    "check_if_project_is_loaded",
+    "copy_design_from",
+    "copy_project",
+    "duplicate_design",
+    "flatten_3d_components",
+    "list_of_variations",
+    "read_design_data",
+    "rename_design",
+    "validate_full_design",
+    "validate_simple",
+}
 NEAR_FIELD_METHODS = {
     "box": "insert_near_field_box",
     "line": "insert_near_field_line",
@@ -631,6 +646,118 @@ def get_profile(
         raise AedtError("Active app does not expose get_profile.")
     result = call_with_supported_kwargs(app.get_profile, {"name": name})
     return {"name": name, "profile": to_jsonable(result)}
+
+
+def validate_design(
+    manager: AedtSessionManager,
+    *,
+    validation_kind: str = "simple",
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    normalized = validation_kind.lower().replace("-", "_").replace(" ", "_")
+    method_name = "validate_full_design" if normalized == "full" else "validate_simple"
+    if not hasattr(app, method_name):
+        raise AedtError(f"Active app does not expose {method_name}.")
+    result = getattr(app, method_name)(*(args or []), **dict(kwargs or {}))
+    return {"validation_kind": normalized, "method": method_name, "result": to_jsonable(result)}
+
+
+def cleanup_solution(
+    manager: AedtSessionManager,
+    *,
+    variations: str | list[Any] = "All",
+    entire_solution: bool = True,
+    field: bool = True,
+    mesh: bool = True,
+    linked_data: bool = True,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "cleanup_solution"):
+        raise AedtError("Active app does not expose cleanup_solution.")
+    result = call_with_supported_kwargs(
+        app.cleanup_solution,
+        {
+            "variations": variations,
+            "entire_solution": entire_solution,
+            "field": field,
+            "mesh": mesh,
+            "linked_data": linked_data,
+        },
+    )
+    return {"result": to_jsonable(result)}
+
+
+def change_design_settings(
+    manager: AedtSessionManager,
+    *,
+    settings: Mapping[str, Any],
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "change_design_settings"):
+        raise AedtError("Active app does not expose change_design_settings.")
+    result = app.change_design_settings(dict(settings))
+    return {"settings": to_jsonable(settings), "result": to_jsonable(result)}
+
+
+def change_validation_settings(
+    manager: AedtSessionManager,
+    *,
+    entity_check_level: str = "Strict",
+    ignore_unclassified: bool = False,
+    skip_intersections: bool = False,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "change_validation_settings"):
+        raise AedtError("Active app does not expose change_validation_settings.")
+    result = call_with_supported_kwargs(
+        app.change_validation_settings,
+        {
+            "entity_check_level": entity_check_level,
+            "ignore_unclassified": ignore_unclassified,
+            "skip_intersections": skip_intersections,
+        },
+    )
+    return {"result": to_jsonable(result)}
+
+
+def list_variations(
+    manager: AedtSessionManager,
+    *,
+    setup: str | None = None,
+    sweep: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "list_of_variations"):
+        raise AedtError("Active app does not expose list_of_variations.")
+    result = call_with_supported_kwargs(app.list_of_variations, {"setup": setup, "sweep": sweep})
+    return {"variations": to_jsonable(result)}
+
+
+def read_design_data(manager: AedtSessionManager) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "read_design_data"):
+        raise AedtError("Active app does not expose read_design_data.")
+    return {"design_data": to_jsonable(app.read_design_data())}
+
+
+def project_design_operation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_attr_name(method)
+    if method not in PROJECT_DESIGN_OPERATION_METHODS:
+        supported = ", ".join(sorted(PROJECT_DESIGN_OPERATION_METHODS))
+        raise AedtError(f"Unsupported project/design operation '{method}'. Supported: {supported}.")
+    app = manager.app
+    if not hasattr(app, method):
+        raise AedtError(f"Active app does not expose {method}.")
+    result = getattr(app, method)(*(args or []), **dict(kwargs or {}))
+    return {"method": method, "result": to_jsonable(result)}
 
 
 def create_parametric_sweep(

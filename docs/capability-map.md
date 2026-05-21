@@ -22,10 +22,11 @@
 | Setup/sweeps | `aedt_create_setup`, `aedt_setup_summary`, `aedt_get_setup_properties`, `aedt_update_setup`, `aedt_create_frequency_sweep`, `aedt_create_open_region`, `aedt_call(target="app")` | Setup creation, setup introspection, setup property updates, frequency sweeps, and open-region setup |
 | Boundaries/excitations | `aedt_assign_boundary_or_excitation`, `aedt_create_port`, `aedt_source_port_summary`, `aedt_native_module_call`, `aedt_call(target="omodule")` | Dedicated assignment dispatch, ports/sources, and native AEDT module control |
 | Solver-specific controls | `aedt_hfss_operation`, `aedt_maxwell_operation`, `aedt_q3d_operation`, `aedt_icepak_operation`, `aedt_circuit_operation` | Allowlisted HFSS boundaries/sources/scattering, Maxwell windings/motion/forces, Q3D nets/matrices, Icepak thermal controls, and Circuit schematic/source operations |
-| Simulation | `aedt_analyze`, `aedt_analyze_setup`, `aedt_solve_in_batch`, `aedt_apply_solved_variation` | Analyze setup or active design, run batch solves, and apply solved variations |
+| Simulation | `aedt_analyze`, `aedt_analyze_setup`, `aedt_solve_in_batch`, `aedt_apply_solved_variation`, `aedt_validate_design`, `aedt_cleanup_solution`, `aedt_list_variations` | Analyze setup or active design, run batch solves, apply solved variations, validate designs, clean solution data, and list variations |
 | Optimetrics | `aedt_create_parametric_sweep`, `aedt_create_optimization`, `aedt_call(target="parametrics")`, `aedt_call(target="optimizations")` | Parametric sweeps, optimization, sensitivity/statistical/DOE flows, and generic optimization bridge |
 | Reports | `aedt_create_output_variable`, `aedt_get_output_variable`, `aedt_get_evaluated_value`, `aedt_get_nominal_variation`, `aedt_get_profile`, `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data`, `aedt_get_traces_for_plot`, `aedt_get_touchstone_data`, `aedt_get_monitor_data`, `aedt_insert_near_field`, `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_diagnostics`, `aedt_export_matrix_data`, `aedt_export_icepak_summary`, `aedt_export_app_data` | Output variables, expression evaluation, nominal variations, profile data, report creation, field plots, trace discovery, Touchstone data, monitor data, near-field definitions, matrix data, Icepak summaries, diagnostics, and exports |
 | Deletion | `aedt_delete_item` | Controlled deletion of setups, variables, projects, and designs |
+| Project/design maintenance | `aedt_change_design_settings`, `aedt_change_validation_settings`, `aedt_read_design_data`, `aedt_project_design_operation` | Design settings, validation settings, design data reads, and allowlisted project/design operations |
 | Native properties | `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property` | AEDT `GetProperties`, `GetPropertyValue`, and `ChangeProperty` payload control |
 | Broad API/workflows | `aedt_list_api`, `aedt_call`, `aedt_batch_call`, `aedt_run_app_method` | Public PyAEDT/native AEDT method access and ordered multi-step execution |
 
@@ -47,7 +48,7 @@
 ## Current Local Evidence
 
 - `uv sync --extra dev` succeeds with Python 3.12.10, `mcp 1.27.1`, and `pyaedt 0.27.1`.
-- MCP server currently registers 69 tools.
+- MCP server currently registers 76 tools.
 - `uv run pyaedt --json aedt-versions` detects AEDT `2024.2` at `G:\ANSYSEM2024\AnsysEM\v242\Win64`.
 - `aedt_start_session(app_name="desktop", version="2024.2", non_graphical=True)` launches and releases AEDT Desktop successfully.
 - `aedt_new_project(project_name="MCPNativeProject")` creates and lists a native AEDT project successfully.
