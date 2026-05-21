@@ -9,6 +9,7 @@ from ansysmcp.operations import (
     analyze,
     assign_boundary_or_excitation,
     assign_material,
+    batch_call,
     create_dataset,
     create_field_plot,
     create_frequency_sweep,
@@ -708,6 +709,20 @@ def aedt_call(
         return {"result": to_jsonable(result)}
 
 
+@mcp.tool()
+def aedt_batch_call(
+    operations: list[dict[str, Any]],
+    continue_on_error: bool = False,
+) -> dict[str, Any]:
+    """Execute ordered public PyAEDT/native AEDT calls in one MCP request."""
+    with manager.locked():
+        return batch_call(
+            manager,
+            operations=operations,
+            continue_on_error=continue_on_error,
+        )
+
+
 @mcp.resource("aedt://session")
 def aedt_session_resource() -> dict[str, Any]:
     """Current AEDT session state."""
@@ -758,6 +773,7 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_native_module_call",
         ],
         "broad_bridge_tools": ["aedt_list_api", "aedt_call", "aedt_run_app_method"],
+        "workflow_tools": ["aedt_batch_call"],
         "native_targets": ["odesktop", "oproject", "odesign", "oeditor", "omodule"],
     }
 

@@ -86,6 +86,55 @@ def invoke(
     return target
 
 
+def batch_call(
+    manager: AedtSessionManager,
+    *,
+    operations: list[Mapping[str, Any]],
+    continue_on_error: bool = False,
+) -> dict[str, Any]:
+    results: list[dict[str, Any]] = []
+    for index, operation in enumerate(operations):
+        try:
+            target_name = str(operation.get("target", "app"))
+            module_name = operation.get("module_name")
+            target = manager.target(target_name, module_name=module_name)
+            result = invoke(
+                target,
+                attr_path=operation.get("attr_path"),
+                method=operation.get("method"),
+                args=operation.get("args"),
+                kwargs=operation.get("kwargs"),
+                allow_private=bool(operation.get("allow_private", False)),
+            )
+            results.append(
+                {
+                    "index": index,
+                    "ok": True,
+                    "target": target_name,
+                    "method": operation.get("method"),
+                    "result": to_jsonable(result),
+                }
+            )
+        except Exception as exc:
+            results.append(
+                {
+                    "index": index,
+                    "ok": False,
+                    "target": operation.get("target", "app"),
+                    "method": operation.get("method"),
+                    "error": str(exc),
+                }
+            )
+            if not continue_on_error:
+                break
+    return {
+        "ok": all(item["ok"] for item in results),
+        "completed": len(results),
+        "requested": len(operations),
+        "results": results,
+    }
+
+
 def resolve_attr_path(
     obj: Any,
     attr_path: str | list[str] | None,

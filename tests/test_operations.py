@@ -5,6 +5,7 @@ import pytest
 from ansysmcp.operations import (
     assign_boundary_or_excitation,
     assign_material,
+    batch_call,
     create_dataset,
     create_field_plot,
     create_frequency_sweep,
@@ -284,6 +285,34 @@ def test_api_manifest_reports_constructor_and_methods() -> None:
 def test_invoke_calls_public_method() -> None:
     app = DummyApp()
     assert invoke(app, method="echo", args=["ok"]) == "ok"
+
+
+def test_batch_call_executes_ordered_public_calls() -> None:
+    manager = active_manager()
+    result = batch_call(
+        manager,
+        operations=[
+            {"target": "app", "method": "echo", "args": ["one"]},
+            {"target": "app", "method": "assign_material", "args": [["Box1"], "copper"]},
+        ],
+    )
+    assert result["ok"] is True
+    assert result["completed"] == 2
+    assert result["results"][0]["result"] == "one"
+    assert result["results"][1]["result"] == {"assignment": ["Box1"], "material": "copper"}
+
+
+def test_batch_call_stops_on_error_by_default() -> None:
+    manager = active_manager()
+    result = batch_call(
+        manager,
+        operations=[
+            {"target": "app", "method": "missing_method"},
+            {"target": "app", "method": "echo", "args": ["two"]},
+        ],
+    )
+    assert result["ok"] is False
+    assert result["completed"] == 1
 
 
 def test_invoke_blocks_private_access() -> None:

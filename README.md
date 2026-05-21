@@ -82,9 +82,9 @@ After cloning from GitHub, replace the local path with your checkout path.
 | Post-processing | `aedt_create_output_variable`, `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data` |
 | Export | `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_app_data` |
 | Deletion | `aedt_delete_item` |
-| Broad API | `aedt_run_app_method`, `aedt_list_api`, `aedt_call` |
+| Broad API/workflows | `aedt_run_app_method`, `aedt_list_api`, `aedt_call`, `aedt_batch_call` |
 
-Current MCP registration: **42 tools**.
+Current MCP registration: **43 tools**.
 
 ## Example Workflows
 
@@ -137,7 +137,7 @@ Current local status:
 
 - `ruff check`: passing
 - `pytest`: 20 passing tests
-- MCP tools registered: 42
+- MCP tools registered: 43
 - Desktop/native AEDT smoke: passing on AEDT 2024 R2
 
 ## Documentation
