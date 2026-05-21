@@ -28,7 +28,7 @@
 | Deletion | `aedt_delete_item` | Controlled deletion of setups, variables, projects, and designs |
 | Project/design maintenance | `aedt_change_design_settings`, `aedt_change_validation_settings`, `aedt_read_design_data`, `aedt_project_design_operation` | Design settings, validation settings, design data reads, and allowlisted project/design operations |
 | Configuration | `aedt_configuration_summary`, `aedt_configuration_operation`, `aedt_update_configuration_options` | Configuration import/export and export/import option management |
-| Native properties | `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property` | AEDT `GetProperties`, `GetPropertyValue`, and `ChangeProperty` payload control |
+| Native/OO properties | `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property`, `aedt_oo_object_names`, `aedt_oo_get_properties`, `aedt_oo_get_property_value`, `aedt_oo_set_property_value` | AEDT `GetProperties`, `GetPropertyValue`, `ChangeProperty`, and PyAEDT object-oriented property tree control |
 | Broad API/workflows | `aedt_list_api`, `aedt_call`, `aedt_batch_call`, `aedt_run_app_method` | Public PyAEDT/native AEDT method access and ordered multi-step execution |
 
 ## Native AEDT Bridge Targets
@@ -49,7 +49,7 @@
 ## Current Local Evidence
 
 - `uv sync --extra dev` succeeds with Python 3.12.10, `mcp 1.27.1`, and `pyaedt 0.27.1`.
-- MCP server currently registers 90 tools.
+- MCP server currently registers 94 tools.
 - `uv run pyaedt --json aedt-versions` detects AEDT `2024.2` at `G:\ANSYSEM2024\AnsysEM\v242\Win64`.
 - `aedt_start_session(app_name="desktop", version="2024.2", non_graphical=True)` launches and releases AEDT Desktop successfully.
 - `aedt_new_project(project_name="MCPNativeProject")` creates and lists a native AEDT project successfully.

@@ -70,6 +70,10 @@ from ansysmcp.operations import (
     native_get_property_value,
     native_module_call,
     new_project,
+    oo_get_properties,
+    oo_get_property_value,
+    oo_object_names,
+    oo_set_property_value,
     optimetrics_setup_operation,
     optimetrics_summary,
     optimization_operation,
@@ -1234,6 +1238,76 @@ def aedt_native_change_property(
 
 
 @mcp.tool()
+def aedt_oo_object_names(
+    target: str = "app",
+    object_name: str | None = None,
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    """Return PyAEDT object-oriented child names for an AEDT object."""
+    with manager.locked():
+        return oo_object_names(
+            manager,
+            target=target,
+            object_name=object_name,
+            module_name=module_name,
+        )
+
+
+@mcp.tool()
+def aedt_oo_get_properties(
+    target: str,
+    object_name: str,
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    """Return PyAEDT object-oriented property names for an AEDT object."""
+    with manager.locked():
+        return oo_get_properties(
+            manager,
+            target=target,
+            object_name=object_name,
+            module_name=module_name,
+        )
+
+
+@mcp.tool()
+def aedt_oo_get_property_value(
+    target: str,
+    object_name: str,
+    property_name: str,
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    """Return a PyAEDT object-oriented property value."""
+    with manager.locked():
+        return oo_get_property_value(
+            manager,
+            target=target,
+            object_name=object_name,
+            property_name=property_name,
+            module_name=module_name,
+        )
+
+
+@mcp.tool()
+def aedt_oo_set_property_value(
+    target: str,
+    object_name: str,
+    property_name: str,
+    value: Any,
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    """Set a PyAEDT object-oriented property value."""
+    with manager.locked():
+        return oo_set_property_value(
+            manager,
+            target=target,
+            object_name=object_name,
+            property_name=property_name,
+            value=value,
+            module_name=module_name,
+        )
+
+
+@mcp.tool()
 def aedt_run_app_method(
     method: str,
     args: list[Any] | None = None,
@@ -1427,6 +1501,10 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_native_get_properties",
             "aedt_native_get_property_value",
             "aedt_native_change_property",
+            "aedt_oo_object_names",
+            "aedt_oo_get_properties",
+            "aedt_oo_get_property_value",
+            "aedt_oo_set_property_value",
         ],
         "broad_bridge_tools": ["aedt_list_api", "aedt_call", "aedt_run_app_method"],
         "workflow_tools": ["aedt_batch_call"],

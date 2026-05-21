@@ -85,10 +85,10 @@ After cloning from GitHub, replace the local path with your checkout path.
 | Deletion | `aedt_delete_item` |
 | Project/design maintenance | `aedt_change_design_settings`, `aedt_change_validation_settings`, `aedt_read_design_data`, `aedt_project_design_operation` |
 | Configuration | `aedt_configuration_summary`, `aedt_configuration_operation`, `aedt_update_configuration_options` |
-| Native properties | `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property` |
+| Native/OO properties | `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property`, `aedt_oo_object_names`, `aedt_oo_get_properties`, `aedt_oo_get_property_value`, `aedt_oo_set_property_value` |
 | Broad API/workflows | `aedt_run_app_method`, `aedt_list_api`, `aedt_call`, `aedt_batch_call` |
 
-Current MCP registration: **90 tools**.
+Current MCP registration: **94 tools**.
 
 ## Example Workflows
 
@@ -153,8 +153,8 @@ uv run python scripts/aedt_smoke.py --mode desktop --version 2024.2 --create-pro
 Current local status:
 
 - `ruff check`: passing
-- `pytest`: 35 passing tests
-- MCP tools registered: 90
+- `pytest`: 36 passing tests
+- MCP tools registered: 94
 - Desktop/native AEDT smoke: passing on AEDT 2024 R2
 
 ## Documentation

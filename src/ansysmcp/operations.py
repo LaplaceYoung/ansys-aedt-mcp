@@ -1815,6 +1815,84 @@ def native_change_property(
     return {"target": target, "result": to_jsonable(result)}
 
 
+def oo_object_names(
+    manager: AedtSessionManager,
+    *,
+    target: str = "app",
+    object_name: str | None = None,
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_oo_name"):
+        raise AedtError("Active app does not expose get_oo_name.")
+    obj = manager.target(target, module_name=module_name)
+    result = call_with_supported_kwargs(
+        app.get_oo_name,
+        {"aedt_object": obj, "object_name": object_name},
+        positional_fallback=[obj],
+    )
+    return {"target": target, "object_name": object_name, "names": to_jsonable(result)}
+
+
+def oo_get_properties(
+    manager: AedtSessionManager,
+    *,
+    target: str,
+    object_name: str,
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_oo_properties"):
+        raise AedtError("Active app does not expose get_oo_properties.")
+    obj = manager.target(target, module_name=module_name)
+    result = app.get_oo_properties(obj, object_name)
+    return {"target": target, "object_name": object_name, "properties": to_jsonable(result)}
+
+
+def oo_get_property_value(
+    manager: AedtSessionManager,
+    *,
+    target: str,
+    object_name: str,
+    property_name: str,
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_oo_property_value"):
+        raise AedtError("Active app does not expose get_oo_property_value.")
+    obj = manager.target(target, module_name=module_name)
+    result = app.get_oo_property_value(obj, object_name, property_name)
+    return {
+        "target": target,
+        "object_name": object_name,
+        "property_name": property_name,
+        "value": to_jsonable(result),
+    }
+
+
+def oo_set_property_value(
+    manager: AedtSessionManager,
+    *,
+    target: str,
+    object_name: str,
+    property_name: str,
+    value: Any,
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "set_oo_property_value"):
+        raise AedtError("Active app does not expose set_oo_property_value.")
+    obj = manager.target(target, module_name=module_name)
+    result = app.set_oo_property_value(obj, object_name, property_name, value)
+    return {
+        "target": target,
+        "object_name": object_name,
+        "property_name": property_name,
+        "value": to_jsonable(value),
+        "result": to_jsonable(result),
+    }
+
+
 def materials_summary(manager: AedtSessionManager) -> dict[str, Any]:
     materials = manager.target("materials")
     summary: dict[str, Any] = {}

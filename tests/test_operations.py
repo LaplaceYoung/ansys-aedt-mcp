@@ -58,6 +58,10 @@ from ansysmcp.operations import (
     native_get_property_value,
     native_module_call,
     new_project,
+    oo_get_properties,
+    oo_get_property_value,
+    oo_object_names,
+    oo_set_property_value,
     optimetrics_setup_operation,
     optimetrics_summary,
     optimization_operation,
@@ -382,6 +386,18 @@ class DummyApp:
 
     def duplicate_design(self, name, save_after_duplicate=True):
         return {"name": name, "save_after_duplicate": save_after_duplicate}
+
+    def get_oo_name(self, aedt_object, object_name=None):
+        return ["Excitations", object_name or "Design"]
+
+    def get_oo_properties(self, aedt_object, object_name):
+        return [f"{object_name}:PropA", f"{object_name}:PropB"]
+
+    def get_oo_property_value(self, aedt_object, object_name, prop_name):
+        return f"{object_name}:{prop_name}:Value"
+
+    def set_oo_property_value(self, aedt_object, object_name, prop_name, value):
+        return {"object_name": object_name, "prop_name": prop_name, "value": value}
 
     def apply_solved_variation(self, variation):
         return {"applied": variation}
@@ -1122,3 +1138,26 @@ def test_native_property_wrappers_use_property_api() -> None:
     assert properties["properties"] == ["ProjectVariableTab:ProjectVariables:Prop"]
     assert value["value"] == "ProjectVariableTab:ProjectVariables:$w:Value"
     assert changed["result"] == {"changed": ["NAME:AllTabs"]}
+
+
+def test_oo_property_wrappers_use_pyaedt_object_api() -> None:
+    manager = active_manager()
+    names = oo_object_names(manager, target="app", object_name="Design")
+    properties = oo_get_properties(manager, target="app", object_name="Excitations")
+    value = oo_get_property_value(
+        manager,
+        target="app",
+        object_name="Excitations",
+        property_name="Enabled",
+    )
+    changed = oo_set_property_value(
+        manager,
+        target="app",
+        object_name="Excitations",
+        property_name="Enabled",
+        value=True,
+    )
+    assert names["names"] == ["Excitations", "Design"]
+    assert properties["properties"] == ["Excitations:PropA", "Excitations:PropB"]
+    assert value["value"] == "Excitations:Enabled:Value"
+    assert changed["result"]["value"] is True
