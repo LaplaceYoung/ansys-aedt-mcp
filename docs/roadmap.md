@@ -14,10 +14,10 @@
 
 ## Solver Workflows
 
-- HFSS: variables, 3D primitives, materials, ports, setup, sweep, S-parameter reports.
+- HFSS: variables, 3D primitives, materials, ports, setup, sweep, S-parameter reports, Touchstone data, and near-field extraction.
 - Maxwell 3D: geometry, coils, excitations, solve setup, loss reports.
 - Q3D/Q2D: nets, sources/sinks, matrix extraction, capacitance/inductance exports.
-- Icepak: thermal setup, power maps, monitor points, temperature reports.
+- Icepak: thermal setup, power maps, monitor points, monitor data, and temperature reports.
 - Circuit: schematic components, Nexxim setup, S-parameter export.
 
 ## Release Quality

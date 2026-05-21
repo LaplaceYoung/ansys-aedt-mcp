@@ -24,13 +24,19 @@ from ansysmcp.operations import (
     delete_item,
     design_summary,
     export_app_data,
+    export_diagnostics,
     export_field_plot,
     export_report,
+    get_monitor_data,
+    get_setup_properties,
     get_solution_data,
+    get_touchstone_data,
+    get_traces_for_plot,
     get_variables,
     import_cad,
     import_dataset,
     insert_design,
+    insert_near_field,
     invoke,
     list_api,
     list_projects,
@@ -44,7 +50,9 @@ from ansysmcp.operations import (
     set_active_design,
     set_active_project,
     set_variable,
+    setup_summary,
     source_port_summary,
+    update_setup,
 )
 from ansysmcp.serialization import to_jsonable
 from ansysmcp.session import AedtSessionManager, api_manifest, environment_report
@@ -378,6 +386,27 @@ def aedt_create_setup(
 
 
 @mcp.tool()
+def aedt_setup_summary() -> dict[str, Any]:
+    """Return setup names, active setup, nominal sweep, and setup sweep names."""
+    with manager.locked():
+        return setup_summary(manager)
+
+
+@mcp.tool()
+def aedt_get_setup_properties(name: str) -> dict[str, Any]:
+    """Return the PyAEDT setup object summary and its property dictionary."""
+    with manager.locked():
+        return get_setup_properties(manager, name=name)
+
+
+@mcp.tool()
+def aedt_update_setup(name: str, properties: dict[str, Any]) -> dict[str, Any]:
+    """Update an existing AEDT setup property dictionary and call setup.update()."""
+    with manager.locked():
+        return update_setup(manager, name=name, properties=properties)
+
+
+@mcp.tool()
 def aedt_analyze(setup_name: str | None = None, analyze_all: bool = False) -> dict[str, Any]:
     """Run analysis for a named setup or the active design."""
     with manager.locked():
@@ -555,6 +584,42 @@ def aedt_get_solution_data(
 
 
 @mcp.tool()
+def aedt_get_traces_for_plot(kwargs: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Return available report traces from PyAEDT get_traces_for_plot."""
+    with manager.locked():
+        return get_traces_for_plot(manager, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_get_touchstone_data(
+    setup: str | None = None,
+    sweep: str | None = None,
+    variations: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Return Touchstone data from the active AEDT design when supported by PyAEDT."""
+    with manager.locked():
+        return get_touchstone_data(manager, setup=setup, sweep=sweep, variations=variations)
+
+
+@mcp.tool()
+def aedt_get_monitor_data() -> dict[str, Any]:
+    """Return monitor data from solvers that expose get_monitor_data."""
+    with manager.locked():
+        return get_monitor_data(manager)
+
+
+@mcp.tool()
+def aedt_insert_near_field(
+    field_kind: Literal["box", "line", "points", "rectangle", "sphere"],
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Insert a near-field definition through a controlled PyAEDT helper."""
+    with manager.locked():
+        return insert_near_field(manager, field_kind=field_kind, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
 def aedt_export_report(
     report_name: str,
     output_path: str,
@@ -585,6 +650,26 @@ def aedt_export_field_plot(
             output_dir=output_dir,
             file_name=file_name,
             file_format=file_format,
+        )
+
+
+@mcp.tool()
+def aedt_export_diagnostics(
+    export_kind: Literal["convergence", "mesh_stats", "profile"],
+    setup: str,
+    variations: str = "",
+    output_file: str | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Export convergence, mesh statistics, or profile diagnostics for a setup."""
+    with manager.locked():
+        return export_diagnostics(
+            manager,
+            export_kind=export_kind,
+            setup=setup,
+            variations=variations,
+            output_file=output_file,
+            kwargs=kwargs,
         )
 
 
@@ -794,6 +879,8 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_environment",
             "aedt_api_manifest",
             "aedt_start_session",
+            "aedt_release_session",
+            "aedt_session_info",
             "aedt_open_project",
             "aedt_save_project",
             "aedt_list_projects",
@@ -813,6 +900,9 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_source_port_summary",
             "aedt_mesh_operation",
             "aedt_create_setup",
+            "aedt_setup_summary",
+            "aedt_get_setup_properties",
+            "aedt_update_setup",
             "aedt_create_frequency_sweep",
             "aedt_create_open_region",
             "aedt_create_output_variable",
@@ -824,10 +914,18 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_create_report",
             "aedt_create_field_plot",
             "aedt_get_solution_data",
+            "aedt_get_traces_for_plot",
+            "aedt_get_touchstone_data",
+            "aedt_get_monitor_data",
+            "aedt_insert_near_field",
             "aedt_export_report",
             "aedt_export_field_plot",
+            "aedt_export_diagnostics",
             "aedt_export_app_data",
             "aedt_native_module_call",
+            "aedt_native_get_properties",
+            "aedt_native_get_property_value",
+            "aedt_native_change_property",
         ],
         "broad_bridge_tools": ["aedt_list_api", "aedt_call", "aedt_run_app_method"],
         "workflow_tools": ["aedt_batch_call"],

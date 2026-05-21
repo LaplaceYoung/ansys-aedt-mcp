@@ -27,7 +27,7 @@ SEO keywords: Ansys MCP, AEDT MCP server, Ansys Electronics Desktop automation, 
 - **MCP-ready:** stdio, SSE, and streamable HTTP transports through the official Python MCP SDK.
 - **PyAEDT-first:** HFSS, Maxwell, Q3D/Q2D, Icepak, Circuit, Twin Builder, EMIT, RMxprt, Mechanical, and HFSS 3D Layout entry points.
 - **Native AEDT bridge:** `odesktop`, `oproject`, `odesign`, `oeditor`, and `odesign.GetModule(...)` access through controlled tools.
-- **Simulation workflow tools:** variables, datasets, geometry, materials, setups, sweeps, optimizations, analysis, reports, field plots, and exports.
+- **Simulation workflow tools:** variables, datasets, geometry, materials, setup inspection/update, sweeps, optimizations, analysis, reports, field plots, diagnostics, Touchstone data, monitors, and exports.
 - **Agent-safe verification:** unit tests run without AEDT licenses; Desktop/native smoke tests run on licensed Windows AEDT installations.
 - **Non-commercial source availability:** research, education, personal experimentation, and public knowledge use under PolyForm Noncommercial 1.0.0.
 
@@ -73,19 +73,19 @@ After cloning from GitHub, replace the local path with your checkout path.
 | --- | --- |
 | Environment/API discovery | `aedt_environment`, `aedt_api_manifest` |
 | Session | `aedt_start_session`, `aedt_release_session`, `aedt_session_info` |
-| Project/design | `aedt_open_project`, `aedt_save_project`, `aedt_list_projects`, `aedt_new_project`, `aedt_insert_design` |
+| Project/design | `aedt_open_project`, `aedt_save_project`, `aedt_list_projects`, `aedt_new_project`, `aedt_insert_design`, `aedt_set_active_project`, `aedt_set_active_design`, `aedt_design_summary` |
 | Variables/datasets | `aedt_set_variable`, `aedt_get_variables`, `aedt_create_dataset`, `aedt_import_dataset` |
 | Modeling/materials | `aedt_create_geometry`, `aedt_assign_material`, `aedt_mesh_operation`, `aedt_import_cad` |
 | Ports/sources | `aedt_create_port`, `aedt_source_port_summary`, `aedt_assign_boundary_or_excitation` |
-| Simulation | `aedt_create_setup`, `aedt_create_frequency_sweep`, `aedt_create_open_region`, `aedt_analyze` |
+| Simulation | `aedt_create_setup`, `aedt_setup_summary`, `aedt_get_setup_properties`, `aedt_update_setup`, `aedt_create_frequency_sweep`, `aedt_create_open_region`, `aedt_analyze` |
 | Exploration | `aedt_create_parametric_sweep`, `aedt_create_optimization` |
-| Post-processing | `aedt_create_output_variable`, `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data` |
-| Export | `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_app_data` |
+| Post-processing | `aedt_create_output_variable`, `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data`, `aedt_get_traces_for_plot`, `aedt_get_touchstone_data`, `aedt_get_monitor_data`, `aedt_insert_near_field` |
+| Export | `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_diagnostics`, `aedt_export_app_data` |
 | Deletion | `aedt_delete_item` |
 | Native properties | `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property` |
 | Broad API/workflows | `aedt_run_app_method`, `aedt_list_api`, `aedt_call`, `aedt_batch_call` |
 
-Current MCP registration: **46 tools**.
+Current MCP registration: **54 tools**.
 
 ## Example Workflows
 
@@ -108,12 +108,16 @@ aedt_create_geometry(primitive="box", args=[[0, 0, 0], ["w", "5mm", "1mm"]])
 aedt_assign_material(assignment="Box1", material="copper")
 aedt_create_port(method="wave_port", args=["Face1"], kwargs={"name": "P1"})
 aedt_create_setup(name="Setup1")
+aedt_update_setup(name="Setup1", properties={"MaximumPasses": 8})
 aedt_create_frequency_sweep(sweep_kind="linear_count", args=["Setup1", "GHz", 1, 10])
 aedt_create_parametric_sweep(variable="w", start="5mm", stop="20mm", step="5mm")
 aedt_analyze(setup_name="Setup1")
 aedt_create_output_variable(variable="s11", expression="dB(S(1,1))")
 aedt_create_report(expressions="dB(S(1,1))")
+aedt_get_traces_for_plot(kwargs={"setup": "Setup1"})
+aedt_get_touchstone_data(setup="Setup1")
 aedt_export_report(report_name="S11", output_path="outputs")
+aedt_export_diagnostics(export_kind="convergence", setup="Setup1")
 ```
 
 ## AEDT Requirements
@@ -137,8 +141,8 @@ uv run python scripts/aedt_smoke.py --mode desktop --version 2024.2 --create-pro
 Current local status:
 
 - `ruff check`: passing
-- `pytest`: 23 passing tests
-- MCP tools registered: 46
+- `pytest`: 26 passing tests
+- MCP tools registered: 54
 - Desktop/native AEDT smoke: passing on AEDT 2024 R2
 
 ## Documentation
@@ -153,7 +157,7 @@ Current local status:
 - Add solver-license-backed end-to-end HFSS smoke examples.
 - Add canonical templates for HFSS, Maxwell 3D, Q3D, Icepak, and Circuit workflows.
 - Add MCP prompts for common AEDT modeling and post-processing tasks.
-- Add optional artifact exporters for reports, images, Touchstone, convergence, profiles, and mesh stats.
+- Add solver-specific templates around diagnostics, near-field extraction, Touchstone analysis, and monitor data.
 - Add generated API maps for PyAEDT modeler, post, modules, and native AEDT module names.
 
 ## Community

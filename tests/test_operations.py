@@ -16,9 +16,15 @@ from ansysmcp.operations import (
     delete_item,
     design_summary,
     export_app_data,
+    export_diagnostics,
+    get_monitor_data,
+    get_setup_properties,
+    get_touchstone_data,
+    get_traces_for_plot,
     import_cad,
     import_dataset,
     insert_design,
+    insert_near_field,
     invoke,
     list_api,
     list_projects,
@@ -31,7 +37,9 @@ from ansysmcp.operations import (
     set_active_design,
     set_active_project,
     set_variable,
+    setup_summary,
     source_port_summary,
+    update_setup,
 )
 from ansysmcp.session import (
     AedtError,
@@ -109,6 +117,17 @@ class DummyMesh:
         return {"assignment": assignment, "maximum_length": maximum_length}
 
 
+class DummySetup:
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.props = {"MaximumPasses": 6, "BasisOrder": 1}
+        self.updated = False
+
+    def update(self) -> bool:
+        self.updated = True
+        return True
+
+
 class DummyApp:
     def __init__(self) -> None:
         self.variable_manager = DummyVariableManager()
@@ -120,6 +139,11 @@ class DummyApp:
         self.ports = ["P1"]
         self.sources = ["Source1"]
         self.setups = ["Setup1"]
+        self.setup_names = ["Setup1"]
+        self.setup_sweeps_names = ["Sweep1"]
+        self.active_setup = "Setup1"
+        self.nominal_sweep = "Setup1 : Sweep1"
+        self.setup_objects = {"Setup1": DummySetup("Setup1")}
 
     def echo(self, value: str) -> str:
         return value
@@ -161,6 +185,18 @@ class DummyApp:
             "stop_frequency": stop_frequency,
         }
 
+    def get_setups(self):
+        return list(self.setup_objects)
+
+    def get_sweeps(self, setup_name):
+        return [f"{setup_name}_Sweep1"]
+
+    def get_setup(self, name):
+        return self.setup_objects[name]
+
+    def export_convergence(self, setup, variations="", output_file=None):
+        return {"setup": setup, "variations": variations, "output_file": output_file}
+
     def create_open_region(self, frequency="1GHz", boundary="Radiation", **kwargs):
         return {"frequency": frequency, "boundary": boundary, **kwargs}
 
@@ -171,6 +207,18 @@ class DummyApp:
             "solution": solution,
             "context": context,
         }
+
+    def get_traces_for_plot(self, **kwargs):
+        return {"kwargs": kwargs, "traces": ["dB(S(1,1))"]}
+
+    def get_touchstone_data(self, setup=None, sweep=None, variations=None):
+        return {"setup": setup, "sweep": sweep, "variations": variations}
+
+    def get_monitor_data(self):
+        return [{"name": "Monitor1", "quantity": "Temperature"}]
+
+    def insert_near_field_sphere(self, name, **kwargs):
+        return {"name": name, **kwargs}
 
     def import_3d_cad(self, input_file, **kwargs):
         return {"input_file": input_file, **kwargs}
@@ -470,6 +518,48 @@ def test_sweep_region_output_import_and_delete_wrappers() -> None:
     assert output["result"]["expression"] == "dB(S(1,1))"
     assert imported["method"] == "import_dxf"
     assert deleted["result"] == {"deleted": "Setup1"}
+
+
+def test_setup_summary_and_update_wrappers_use_setup_api() -> None:
+    manager = active_manager()
+    summary = setup_summary(manager)
+    setup = get_setup_properties(manager, name="Setup1")
+    updated = update_setup(manager, name="Setup1", properties={"MaximumPasses": 10})
+    assert summary["setup_names"] == ["Setup1"]
+    assert summary["sweeps"]["Setup1"] == ["Setup1_Sweep1"]
+    assert setup["properties"]["MaximumPasses"] == 6
+    assert updated["result"] is True
+    assert updated["properties"]["MaximumPasses"] == 10
+
+
+def test_post_processing_data_wrappers_use_app_api() -> None:
+    manager = active_manager()
+    traces = get_traces_for_plot(manager, kwargs={"setup": "Setup1"})
+    touchstone = get_touchstone_data(manager, setup="Setup1", sweep="Sweep1")
+    monitors = get_monitor_data(manager)
+    near_field = insert_near_field(
+        manager,
+        field_kind="sphere",
+        args=["NF1"],
+        kwargs={"radius": "10mm"},
+    )
+    assert traces["traces"]["traces"] == ["dB(S(1,1))"]
+    assert touchstone["touchstone_data"]["sweep"] == "Sweep1"
+    assert monitors["monitor_data"][0]["name"] == "Monitor1"
+    assert near_field["method"] == "insert_near_field_sphere"
+    assert near_field["result"]["radius"] == "10mm"
+
+
+def test_export_diagnostics_uses_allowlisted_methods() -> None:
+    result = export_diagnostics(
+        active_manager(),
+        export_kind="convergence",
+        setup="Setup1",
+        variations="w=10mm",
+        output_file="convergence.csv",
+    )
+    assert result["method"] == "export_convergence"
+    assert result["result"]["output_file"] == "convergence.csv"
 
 
 def test_native_module_call_uses_get_module() -> None:

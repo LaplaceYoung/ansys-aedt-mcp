@@ -41,6 +41,18 @@ SWEEP_METHODS = {
     "linear_step": "create_linear_step_sweep",
     "single_point": "create_single_point_sweep",
 }
+DIAGNOSTIC_EXPORT_METHODS = {
+    "convergence": "export_convergence",
+    "mesh_stats": "export_mesh_stats",
+    "profile": "export_profile",
+}
+NEAR_FIELD_METHODS = {
+    "box": "insert_near_field_box",
+    "line": "insert_near_field_line",
+    "points": "insert_near_field_points",
+    "rectangle": "insert_near_field_rectangle",
+    "sphere": "insert_near_field_sphere",
+}
 
 
 def list_api(obj: Any, *, include_private: bool = False) -> dict[str, Any]:
@@ -254,6 +266,67 @@ def create_setup(
     if hasattr(setup, "update"):
         setup.update()
     return {"setup": to_jsonable(setup)}
+
+
+def setup_summary(manager: AedtSessionManager) -> dict[str, Any]:
+    app = manager.app
+    summary: dict[str, Any] = {}
+    for attr in ("setup_names", "setup_sweeps_names", "active_setup", "nominal_sweep"):
+        if hasattr(app, attr):
+            try:
+                summary[attr] = to_jsonable(getattr(app, attr))
+            except Exception as exc:
+                summary[attr] = {"error": str(exc)}
+    if hasattr(app, "get_setups"):
+        try:
+            setups = app.get_setups()
+            summary["get_setups"] = to_jsonable(setups)
+            sweeps: dict[str, Any] = {}
+            if hasattr(app, "get_sweeps"):
+                for setup_name in setups:
+                    try:
+                        sweeps[str(setup_name)] = to_jsonable(app.get_sweeps(setup_name))
+                    except Exception as exc:
+                        sweeps[str(setup_name)] = {"error": str(exc)}
+            summary["sweeps"] = sweeps
+        except Exception as exc:
+            summary["get_setups"] = {"error": str(exc)}
+    return summary
+
+
+def get_setup_properties(
+    manager: AedtSessionManager,
+    *,
+    name: str,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_setup"):
+        raise AedtError("Active app does not expose get_setup.")
+    setup = app.get_setup(name)
+    return {
+        "name": name,
+        "setup": to_jsonable(setup),
+        "properties": to_jsonable(getattr(setup, "props", {})),
+    }
+
+
+def update_setup(
+    manager: AedtSessionManager,
+    *,
+    name: str,
+    properties: Mapping[str, Any],
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_setup"):
+        raise AedtError("Active app does not expose get_setup.")
+    setup = app.get_setup(name)
+    apply_setup_properties(setup, properties)
+    result = setup.update() if hasattr(setup, "update") else True
+    return {
+        "name": name,
+        "result": to_jsonable(result),
+        "properties": to_jsonable(getattr(setup, "props", {})),
+    }
 
 
 def apply_setup_properties(setup: Any, properties: Mapping[str, Any]) -> None:
@@ -534,6 +607,37 @@ def create_frequency_sweep(
     return {"method": method_name, "result": to_jsonable(result)}
 
 
+def export_diagnostics(
+    manager: AedtSessionManager,
+    *,
+    export_kind: str,
+    setup: str,
+    variations: str = "",
+    output_file: str | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    normalized = export_kind.lower().replace("-", "_").replace(" ", "_")
+    method_name = DIAGNOSTIC_EXPORT_METHODS.get(normalized)
+    if method_name is None:
+        supported = ", ".join(sorted(DIAGNOSTIC_EXPORT_METHODS))
+        raise AedtError(f"Unsupported diagnostic export '{export_kind}'. Supported: {supported}.")
+    if not hasattr(app, method_name):
+        raise AedtError(f"Active app does not expose {method_name}.")
+    export_kwargs = {
+        "setup": setup,
+        "variations": variations,
+        "output_file": output_file,
+        **dict(kwargs or {}),
+    }
+    result = call_with_supported_kwargs(
+        getattr(app, method_name),
+        export_kwargs,
+        positional_fallback=[setup],
+    )
+    return {"export_kind": normalized, "method": method_name, "result": to_jsonable(result)}
+
+
 def create_open_region(
     manager: AedtSessionManager,
     *,
@@ -576,6 +680,58 @@ def create_output_variable(
         positional_fallback=[variable, expression],
     )
     return {"variable": variable, "result": to_jsonable(result)}
+
+
+def get_traces_for_plot(
+    manager: AedtSessionManager,
+    *,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_traces_for_plot"):
+        raise AedtError("Active app does not expose get_traces_for_plot.")
+    result = app.get_traces_for_plot(**dict(kwargs or {}))
+    return {"traces": to_jsonable(result)}
+
+
+def get_touchstone_data(
+    manager: AedtSessionManager,
+    *,
+    setup: str | None = None,
+    sweep: str | None = None,
+    variations: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_touchstone_data"):
+        raise AedtError("Active app does not expose get_touchstone_data.")
+    result = app.get_touchstone_data(setup=setup, sweep=sweep, variations=variations)
+    return {"touchstone_data": to_jsonable(result)}
+
+
+def get_monitor_data(manager: AedtSessionManager) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_monitor_data"):
+        raise AedtError("Active app does not expose get_monitor_data.")
+    return {"monitor_data": to_jsonable(app.get_monitor_data())}
+
+
+def insert_near_field(
+    manager: AedtSessionManager,
+    *,
+    field_kind: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    normalized = field_kind.lower().replace("-", "_").replace(" ", "_")
+    method_name = NEAR_FIELD_METHODS.get(normalized)
+    if method_name is None:
+        supported = ", ".join(sorted(NEAR_FIELD_METHODS))
+        raise AedtError(f"Unsupported near-field kind '{field_kind}'. Supported: {supported}.")
+    if not hasattr(app, method_name):
+        raise AedtError(f"Active app does not expose {method_name}.")
+    result = getattr(app, method_name)(*(args or []), **dict(kwargs or {}))
+    return {"field_kind": normalized, "method": method_name, "result": to_jsonable(result)}
 
 
 def import_cad(
