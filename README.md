@@ -75,18 +75,18 @@ After cloning from GitHub, replace the local path with your checkout path.
 | Session | `aedt_start_session`, `aedt_release_session`, `aedt_session_info` |
 | Project/design | `aedt_open_project`, `aedt_save_project`, `aedt_list_projects`, `aedt_new_project`, `aedt_insert_design`, `aedt_set_active_project`, `aedt_set_active_design`, `aedt_design_summary` |
 | Variables/datasets | `aedt_set_variable`, `aedt_get_variables`, `aedt_create_dataset`, `aedt_import_dataset` |
-| Modeling/materials | `aedt_create_geometry`, `aedt_assign_material`, `aedt_mesh_operation`, `aedt_import_cad` |
+| Modeling/materials | `aedt_create_geometry`, `aedt_assign_material`, `aedt_material_object_summary`, `aedt_mesh_operation`, `aedt_import_cad` |
 | Ports/sources | `aedt_create_port`, `aedt_source_port_summary`, `aedt_assign_boundary_or_excitation` |
 | Solver-specific controls | `aedt_hfss_operation`, `aedt_maxwell_operation`, `aedt_q3d_operation`, `aedt_icepak_operation`, `aedt_circuit_operation` |
-| Simulation | `aedt_create_setup`, `aedt_setup_summary`, `aedt_get_setup_properties`, `aedt_update_setup`, `aedt_create_frequency_sweep`, `aedt_create_open_region`, `aedt_analyze` |
+| Simulation | `aedt_create_setup`, `aedt_setup_summary`, `aedt_get_setup_properties`, `aedt_update_setup`, `aedt_create_frequency_sweep`, `aedt_create_open_region`, `aedt_analyze`, `aedt_analyze_setup`, `aedt_solve_in_batch`, `aedt_apply_solved_variation` |
 | Exploration | `aedt_create_parametric_sweep`, `aedt_create_optimization` |
-| Post-processing | `aedt_create_output_variable`, `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data`, `aedt_get_traces_for_plot`, `aedt_get_touchstone_data`, `aedt_get_monitor_data`, `aedt_insert_near_field` |
+| Post-processing | `aedt_create_output_variable`, `aedt_get_output_variable`, `aedt_get_evaluated_value`, `aedt_get_nominal_variation`, `aedt_get_profile`, `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data`, `aedt_get_traces_for_plot`, `aedt_get_touchstone_data`, `aedt_get_monitor_data`, `aedt_insert_near_field` |
 | Export | `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_diagnostics`, `aedt_export_matrix_data`, `aedt_export_icepak_summary`, `aedt_export_app_data` |
 | Deletion | `aedt_delete_item` |
 | Native properties | `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property` |
 | Broad API/workflows | `aedt_run_app_method`, `aedt_list_api`, `aedt_call`, `aedt_batch_call` |
 
-Current MCP registration: **61 tools**.
+Current MCP registration: **69 tools**.
 
 ## Example Workflows
 
@@ -113,8 +113,9 @@ aedt_create_setup(name="Setup1")
 aedt_update_setup(name="Setup1", properties={"MaximumPasses": 8})
 aedt_create_frequency_sweep(sweep_kind="linear_count", args=["Setup1", "GHz", 1, 10])
 aedt_create_parametric_sweep(variable="w", start="5mm", stop="20mm", step="5mm")
-aedt_analyze(setup_name="Setup1")
+aedt_analyze_setup(name="Setup1", cores=8, blocking=true)
 aedt_create_output_variable(variable="s11", expression="dB(S(1,1))")
+aedt_get_evaluated_value(name="w", units="mm")
 aedt_create_report(expressions="dB(S(1,1))")
 aedt_get_traces_for_plot(kwargs={"setup": "Setup1"})
 aedt_get_touchstone_data(setup="Setup1")
@@ -143,8 +144,8 @@ uv run python scripts/aedt_smoke.py --mode desktop --version 2024.2 --create-pro
 Current local status:
 
 - `ruff check`: passing
-- `pytest`: 28 passing tests
-- MCP tools registered: 61
+- `pytest`: 30 passing tests
+- MCP tools registered: 69
 - Desktop/native AEDT smoke: passing on AEDT 2024 R2
 
 ## Documentation

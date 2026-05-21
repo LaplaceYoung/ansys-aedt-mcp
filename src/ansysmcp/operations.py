@@ -496,6 +496,143 @@ def analyze(
     raise AedtError("Active app does not expose analyze or analyze_setup.")
 
 
+def analyze_setup(
+    manager: AedtSessionManager,
+    *,
+    name: str | None = None,
+    cores: int | None = None,
+    tasks: int | None = None,
+    gpus: int | None = None,
+    acf_file: str | None = None,
+    use_auto_settings: bool = True,
+    num_variations_to_distribute: int | None = None,
+    allowed_distribution_types: list[Any] | None = None,
+    revert_to_initial_mesh: bool = False,
+    blocking: bool = True,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "analyze_setup"):
+        raise AedtError("Active app does not expose analyze_setup.")
+    result = call_with_supported_kwargs(
+        app.analyze_setup,
+        {
+            "name": name,
+            "cores": cores,
+            "tasks": tasks,
+            "gpus": gpus,
+            "acf_file": acf_file,
+            "use_auto_settings": use_auto_settings,
+            "num_variations_to_distribute": num_variations_to_distribute,
+            "allowed_distribution_types": allowed_distribution_types,
+            "revert_to_initial_mesh": revert_to_initial_mesh,
+            "blocking": blocking,
+        },
+    )
+    return {"setup": name, "result": to_jsonable(result)}
+
+
+def solve_in_batch(
+    manager: AedtSessionManager,
+    *,
+    file_name: str | None = None,
+    machine: str = "localhost",
+    run_in_thread: bool = False,
+    cores: int = 4,
+    tasks: int = 1,
+    setup: str | None = None,
+    revert_to_initial_mesh: bool = False,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "solve_in_batch"):
+        raise AedtError("Active app does not expose solve_in_batch.")
+    result = call_with_supported_kwargs(
+        app.solve_in_batch,
+        {
+            "file_name": file_name,
+            "machine": machine,
+            "run_in_thread": run_in_thread,
+            "cores": cores,
+            "tasks": tasks,
+            "setup": setup,
+            "revert_to_initial_mesh": revert_to_initial_mesh,
+        },
+    )
+    return {"setup": setup, "result": to_jsonable(result)}
+
+
+def apply_solved_variation(
+    manager: AedtSessionManager,
+    *,
+    variation: Mapping[str, Any],
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "apply_solved_variation"):
+        raise AedtError("Active app does not expose apply_solved_variation.")
+    result = app.apply_solved_variation(dict(variation))
+    return {"variation": to_jsonable(variation), "result": to_jsonable(result)}
+
+
+def get_nominal_variation(
+    manager: AedtSessionManager,
+    *,
+    with_values: bool = False,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_nominal_variation"):
+        raise AedtError("Active app does not expose get_nominal_variation.")
+    result = call_with_supported_kwargs(
+        app.get_nominal_variation,
+        {"with_values": with_values},
+    )
+    return {"variation": to_jsonable(result)}
+
+
+def get_evaluated_value(
+    manager: AedtSessionManager,
+    *,
+    name: str,
+    units: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_evaluated_value"):
+        raise AedtError("Active app does not expose get_evaluated_value.")
+    result = call_with_supported_kwargs(
+        app.get_evaluated_value,
+        {"name": name, "units": units},
+        positional_fallback=[name],
+    )
+    return {"name": name, "units": units, "value": to_jsonable(result)}
+
+
+def get_output_variable(
+    manager: AedtSessionManager,
+    *,
+    variable: str,
+    solution: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_output_variable"):
+        raise AedtError("Active app does not expose get_output_variable.")
+    result = call_with_supported_kwargs(
+        app.get_output_variable,
+        {"variable": variable, "solution": solution},
+        positional_fallback=[variable],
+    )
+    return {"variable": variable, "value": to_jsonable(result)}
+
+
+def get_profile(
+    manager: AedtSessionManager,
+    *,
+    name: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_profile"):
+        raise AedtError("Active app does not expose get_profile.")
+    result = call_with_supported_kwargs(app.get_profile, {"name": name})
+    return {"name": name, "profile": to_jsonable(result)}
+
+
 def create_parametric_sweep(
     manager: AedtSessionManager,
     *,
@@ -831,6 +968,29 @@ def source_port_summary(manager: AedtSessionManager) -> dict[str, Any]:
                 summary[method_name] = to_jsonable(getattr(app, method_name)())
             except Exception as exc:
                 summary[method_name] = {"error": str(exc)}
+    return summary
+
+
+def material_object_summary(
+    manager: AedtSessionManager,
+    *,
+    assignment: list[Any] | None = None,
+    prop_names: str | list[str] | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    summary: dict[str, Any] = {}
+    for method_name in ("get_all_conductors_names", "get_all_dielectrics_names"):
+        if hasattr(app, method_name):
+            try:
+                summary[method_name] = to_jsonable(getattr(app, method_name)())
+            except Exception as exc:
+                summary[method_name] = {"error": str(exc)}
+    if hasattr(app, "get_object_material_properties"):
+        result = call_with_supported_kwargs(
+            app.get_object_material_properties,
+            {"assignment": assignment, "prop_names": prop_names},
+        )
+        summary["object_material_properties"] = to_jsonable(result)
     return summary
 
 

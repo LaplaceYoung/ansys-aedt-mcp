@@ -7,6 +7,8 @@ from mcp.server.fastmcp import FastMCP
 
 from ansysmcp.operations import (
     analyze,
+    analyze_setup,
+    apply_solved_variation,
     assign_boundary_or_excitation,
     assign_material,
     batch_call,
@@ -30,7 +32,11 @@ from ansysmcp.operations import (
     export_icepak_summary,
     export_matrix_data,
     export_report,
+    get_evaluated_value,
     get_monitor_data,
+    get_nominal_variation,
+    get_output_variable,
+    get_profile,
     get_setup_properties,
     get_solution_data,
     get_touchstone_data,
@@ -45,6 +51,7 @@ from ansysmcp.operations import (
     invoke,
     list_api,
     list_projects,
+    material_object_summary,
     maxwell_operation,
     mesh_operation,
     native_change_property,
@@ -58,6 +65,7 @@ from ansysmcp.operations import (
     set_active_project,
     set_variable,
     setup_summary,
+    solve_in_batch,
     source_port_summary,
     update_setup,
 )
@@ -307,6 +315,16 @@ def aedt_assign_material(assignment: str | list[str], material: str) -> dict[str
 
 
 @mcp.tool()
+def aedt_material_object_summary(
+    assignment: list[Any] | None = None,
+    prop_names: str | list[str] | None = None,
+) -> dict[str, Any]:
+    """Return conductor/dielectric names and object material properties."""
+    with manager.locked():
+        return material_object_summary(manager, assignment=assignment, prop_names=prop_names)
+
+
+@mcp.tool()
 def aedt_assign_boundary_or_excitation(
     method: str,
     args: list[Any] | None = None,
@@ -473,6 +491,95 @@ def aedt_analyze(setup_name: str | None = None, analyze_all: bool = False) -> di
     """Run analysis for a named setup or the active design."""
     with manager.locked():
         return analyze(manager, setup_name=setup_name, analyze_all=analyze_all)
+
+
+@mcp.tool()
+def aedt_analyze_setup(
+    name: str | None = None,
+    cores: int | None = None,
+    tasks: int | None = None,
+    gpus: int | None = None,
+    acf_file: str | None = None,
+    use_auto_settings: bool = True,
+    num_variations_to_distribute: int | None = None,
+    allowed_distribution_types: list[Any] | None = None,
+    revert_to_initial_mesh: bool = False,
+    blocking: bool = True,
+) -> dict[str, Any]:
+    """Analyze a named setup with PyAEDT distribution and blocking options."""
+    with manager.locked():
+        return analyze_setup(
+            manager,
+            name=name,
+            cores=cores,
+            tasks=tasks,
+            gpus=gpus,
+            acf_file=acf_file,
+            use_auto_settings=use_auto_settings,
+            num_variations_to_distribute=num_variations_to_distribute,
+            allowed_distribution_types=allowed_distribution_types,
+            revert_to_initial_mesh=revert_to_initial_mesh,
+            blocking=blocking,
+        )
+
+
+@mcp.tool()
+def aedt_solve_in_batch(
+    file_name: str | None = None,
+    machine: str = "localhost",
+    run_in_thread: bool = False,
+    cores: int = 4,
+    tasks: int = 1,
+    setup: str | None = None,
+    revert_to_initial_mesh: bool = False,
+) -> dict[str, Any]:
+    """Launch PyAEDT batch solve for the active design or a named setup."""
+    with manager.locked():
+        return solve_in_batch(
+            manager,
+            file_name=file_name,
+            machine=machine,
+            run_in_thread=run_in_thread,
+            cores=cores,
+            tasks=tasks,
+            setup=setup,
+            revert_to_initial_mesh=revert_to_initial_mesh,
+        )
+
+
+@mcp.tool()
+def aedt_apply_solved_variation(variation: dict[str, Any]) -> dict[str, Any]:
+    """Apply a solved variation dictionary to the active design context."""
+    with manager.locked():
+        return apply_solved_variation(manager, variation=variation)
+
+
+@mcp.tool()
+def aedt_get_nominal_variation(with_values: bool = False) -> dict[str, Any]:
+    """Return the nominal variation string or dictionary from the active design."""
+    with manager.locked():
+        return get_nominal_variation(manager, with_values=with_values)
+
+
+@mcp.tool()
+def aedt_get_evaluated_value(name: str, units: str | None = None) -> dict[str, Any]:
+    """Evaluate a variable or expression in the active AEDT design."""
+    with manager.locked():
+        return get_evaluated_value(manager, name=name, units=units)
+
+
+@mcp.tool()
+def aedt_get_output_variable(variable: str, solution: str | None = None) -> dict[str, Any]:
+    """Read a PyAEDT output variable value."""
+    with manager.locked():
+        return get_output_variable(manager, variable=variable, solution=solution)
+
+
+@mcp.tool()
+def aedt_get_profile(name: str | None = None) -> dict[str, Any]:
+    """Return solve profile data for a setup or the active profile context."""
+    with manager.locked():
+        return get_profile(manager, name=name)
 
 
 @mcp.tool()
@@ -1001,6 +1108,7 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_import_dataset",
             "aedt_create_geometry",
             "aedt_assign_material",
+            "aedt_material_object_summary",
             "aedt_assign_boundary_or_excitation",
             "aedt_hfss_operation",
             "aedt_maxwell_operation",
@@ -1022,6 +1130,13 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_create_parametric_sweep",
             "aedt_create_optimization",
             "aedt_analyze",
+            "aedt_analyze_setup",
+            "aedt_solve_in_batch",
+            "aedt_apply_solved_variation",
+            "aedt_get_nominal_variation",
+            "aedt_get_evaluated_value",
+            "aedt_get_output_variable",
+            "aedt_get_profile",
             "aedt_create_report",
             "aedt_create_field_plot",
             "aedt_get_solution_data",

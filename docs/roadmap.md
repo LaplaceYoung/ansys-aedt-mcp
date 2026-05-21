@@ -3,6 +3,7 @@
 ## Near Term
 
 - Add verified examples for Desktop/native workflows.
+- Add reusable solve-control examples for distributed setup solves, batch solves, solved variations, and profile reads.
 - Add focused wrappers for common native modules:
   - `AnalysisSetup`
   - `BoundarySetup`

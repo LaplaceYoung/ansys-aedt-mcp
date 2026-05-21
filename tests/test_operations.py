@@ -3,6 +3,8 @@ from __future__ import annotations
 import pytest
 
 from ansysmcp.operations import (
+    analyze_setup,
+    apply_solved_variation,
     assign_boundary_or_excitation,
     assign_material,
     batch_call,
@@ -20,7 +22,11 @@ from ansysmcp.operations import (
     export_diagnostics,
     export_icepak_summary,
     export_matrix_data,
+    get_evaluated_value,
     get_monitor_data,
+    get_nominal_variation,
+    get_output_variable,
+    get_profile,
     get_setup_properties,
     get_touchstone_data,
     get_traces_for_plot,
@@ -33,6 +39,7 @@ from ansysmcp.operations import (
     invoke,
     list_api,
     list_projects,
+    material_object_summary,
     maxwell_operation,
     mesh_operation,
     native_change_property,
@@ -45,6 +52,7 @@ from ansysmcp.operations import (
     set_active_project,
     set_variable,
     setup_summary,
+    solve_in_batch,
     source_port_summary,
     update_setup,
 )
@@ -155,6 +163,29 @@ class DummyApp:
     def echo(self, value: str) -> str:
         return value
 
+    def analyze_setup(self, name=None, cores=None, tasks=None, blocking=True):
+        return {"name": name, "cores": cores, "tasks": tasks, "blocking": blocking}
+
+    def solve_in_batch(self, file_name=None, machine="localhost", cores=4, setup=None):
+        return {"file_name": file_name, "machine": machine, "cores": cores, "setup": setup}
+
+    def apply_solved_variation(self, variation):
+        return {"applied": variation}
+
+    def get_nominal_variation(self, with_values=False):
+        if with_values:
+            return {"w": "10mm"}
+        return "w='10mm'"
+
+    def get_evaluated_value(self, name, units=None):
+        return {"name": name, "units": units, "value": 10}
+
+    def get_output_variable(self, variable, solution=None):
+        return {"variable": variable, "solution": solution, "value": -12.3}
+
+    def get_profile(self, name=None):
+        return {"name": name, "passes": 3}
+
     def assign_material(self, assignment, material):
         return {"assignment": assignment, "material": material}
 
@@ -183,6 +214,15 @@ class DummyApp:
 
     def get_all_source_modes(self):
         return ["Source1:1"]
+
+    def get_all_conductors_names(self):
+        return ["copper"]
+
+    def get_all_dielectrics_names(self):
+        return ["FR4_epoxy"]
+
+    def get_object_material_properties(self, assignment=None, prop_names=None):
+        return {"assignment": assignment, "prop_names": prop_names, "conductivity": "5.8e7"}
 
     def create_linear_count_sweep(self, setup, unit, start_frequency, stop_frequency):
         return {
@@ -505,6 +545,32 @@ def test_design_summary_includes_session_and_app_lists() -> None:
     assert summary["session"]["active"] is True
     assert summary["setups"] == ["Setup1"]
     assert summary["boundaries"] == ["Boundary1"]
+
+
+def test_analysis_control_wrappers_dispatch_to_app() -> None:
+    manager = active_manager()
+    setup = analyze_setup(manager, name="Setup1", cores=8, tasks=2, blocking=False)
+    batch = solve_in_batch(manager, file_name="project.aedt", setup="Setup1", cores=4)
+    variation = apply_solved_variation(manager, variation={"w": "10mm"})
+    assert setup["result"]["cores"] == 8
+    assert setup["result"]["tasks"] == 2
+    assert batch["result"]["file_name"] == "project.aedt"
+    assert variation["result"]["applied"] == {"w": "10mm"}
+
+
+def test_value_profile_and_material_summaries_use_app_apis() -> None:
+    manager = active_manager()
+    nominal = get_nominal_variation(manager, with_values=True)
+    evaluated = get_evaluated_value(manager, name="w", units="mm")
+    output = get_output_variable(manager, variable="s11", solution="Setup1")
+    profile = get_profile(manager, name="Setup1")
+    materials = material_object_summary(manager, assignment=["Box1"], prop_names=["conductivity"])
+    assert nominal["variation"] == {"w": "10mm"}
+    assert evaluated["value"]["units"] == "mm"
+    assert output["value"]["value"] == -12.3
+    assert profile["profile"]["passes"] == 3
+    assert materials["get_all_conductors_names"] == ["copper"]
+    assert materials["object_material_properties"]["assignment"] == ["Box1"]
 
 
 def test_boundary_and_mesh_wrappers_dispatch_to_app_objects() -> None:
