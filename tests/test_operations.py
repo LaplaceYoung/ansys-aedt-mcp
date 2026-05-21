@@ -53,6 +53,8 @@ from ansysmcp.operations import (
     native_get_property_value,
     native_module_call,
     new_project,
+    post_operation,
+    post_summary,
     project_design_operation,
     q3d_operation,
     read_design_data,
@@ -134,6 +136,12 @@ class DummyOptimizations:
 
 
 class DummyPost:
+    all_report_names = ["S11"]
+    available_report_types = ["Rectangular Plot"]
+    field_plot_names = ["EField"]
+    post_solution_type = "DrivenModal"
+    update_report_dynamically = True
+
     def create_fieldplot_surface(
         self,
         assignment,
@@ -152,6 +160,34 @@ class DummyPost:
             "plot_name": plot_name,
             "field_type": field_type,
         }
+
+    def available_report_solutions(self, report_category=None):
+        return ["Setup1 : Sweep1"]
+
+    def get_all_report_quantities(self, solution=None, context=None, is_siwave_dc=False):
+        return {"S Parameter": ["dB(S(1,1))"]}
+
+    def rename_report(self, plot_name, new_name):
+        return {"plot_name": plot_name, "new_name": new_name}
+
+    def export_report_to_jpg(
+        self,
+        project_path,
+        plot_name,
+        width=800,
+        height=450,
+        image_format="jpg",
+    ):
+        return {
+            "project_path": project_path,
+            "plot_name": plot_name,
+            "width": width,
+            "height": height,
+            "image_format": image_format,
+        }
+
+    def get_scalar_field_value(self, quantity, scalar_function="Maximum", **kwargs):
+        return {"quantity": quantity, "scalar_function": scalar_function, **kwargs}
 
 
 class DummyMesh:
@@ -591,6 +627,33 @@ def test_create_field_plot_dispatches_by_kind() -> None:
     )
     assert result["field_plot"]["kind"] == "surface"
     assert result["field_plot"]["plot_name"] == "EField"
+
+
+def test_post_summary_and_operation_use_post_api() -> None:
+    manager = active_manager()
+    summary = post_summary(manager)
+    renamed = post_operation(
+        manager,
+        method="rename_report",
+        args=["S11", "S11_Renamed"],
+    )
+    exported = post_operation(
+        manager,
+        method="export_report_to_jpg",
+        args=["outputs", "S11"],
+        kwargs={"width": 1200},
+    )
+    scalar = post_operation(
+        manager,
+        method="get_scalar_field_value",
+        args=["Mag_E"],
+        kwargs={"scalar_function": "Maximum", "object_name": "Box1"},
+    )
+    assert summary["all_report_names"] == ["S11"]
+    assert summary["available_report_solutions"] == ["Setup1 : Sweep1"]
+    assert renamed["result"]["new_name"] == "S11_Renamed"
+    assert exported["result"]["width"] == 1200
+    assert scalar["result"]["object_name"] == "Box1"
 
 
 def test_export_app_data_uses_allowlisted_method() -> None:

@@ -80,14 +80,14 @@ After cloning from GitHub, replace the local path with your checkout path.
 | Solver-specific controls | `aedt_hfss_operation`, `aedt_maxwell_operation`, `aedt_q3d_operation`, `aedt_icepak_operation`, `aedt_circuit_operation` |
 | Simulation | `aedt_create_setup`, `aedt_setup_summary`, `aedt_get_setup_properties`, `aedt_update_setup`, `aedt_create_frequency_sweep`, `aedt_create_open_region`, `aedt_analyze`, `aedt_analyze_setup`, `aedt_solve_in_batch`, `aedt_apply_solved_variation`, `aedt_validate_design`, `aedt_cleanup_solution`, `aedt_list_variations` |
 | Exploration | `aedt_create_parametric_sweep`, `aedt_create_optimization` |
-| Post-processing | `aedt_create_output_variable`, `aedt_get_output_variable`, `aedt_get_evaluated_value`, `aedt_get_nominal_variation`, `aedt_get_profile`, `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data`, `aedt_get_traces_for_plot`, `aedt_get_touchstone_data`, `aedt_get_monitor_data`, `aedt_insert_near_field` |
+| Post-processing | `aedt_create_output_variable`, `aedt_get_output_variable`, `aedt_get_evaluated_value`, `aedt_get_nominal_variation`, `aedt_get_profile`, `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data`, `aedt_get_traces_for_plot`, `aedt_get_touchstone_data`, `aedt_get_monitor_data`, `aedt_post_summary`, `aedt_post_operation`, `aedt_insert_near_field` |
 | Export | `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_diagnostics`, `aedt_export_matrix_data`, `aedt_export_icepak_summary`, `aedt_export_app_data` |
 | Deletion | `aedt_delete_item` |
 | Project/design maintenance | `aedt_change_design_settings`, `aedt_change_validation_settings`, `aedt_read_design_data`, `aedt_project_design_operation` |
 | Native properties | `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property` |
 | Broad API/workflows | `aedt_run_app_method`, `aedt_list_api`, `aedt_call`, `aedt_batch_call` |
 
-Current MCP registration: **78 tools**.
+Current MCP registration: **80 tools**.
 
 ## Example Workflows
 
@@ -119,6 +119,8 @@ aedt_analyze_setup(name="Setup1", cores=8, blocking=true)
 aedt_create_output_variable(variable="s11", expression="dB(S(1,1))")
 aedt_get_evaluated_value(name="w", units="mm")
 aedt_create_report(expressions="dB(S(1,1))")
+aedt_post_summary
+aedt_post_operation(method="export_report_to_jpg", args=["outputs", "S11"], kwargs={"width": 1200})
 aedt_get_traces_for_plot(kwargs={"setup": "Setup1"})
 aedt_get_touchstone_data(setup="Setup1")
 aedt_export_report(report_name="S11", output_path="outputs")
@@ -146,8 +148,8 @@ uv run python scripts/aedt_smoke.py --mode desktop --version 2024.2 --create-pro
 Current local status:
 
 - `ruff check`: passing
-- `pytest`: 32 passing tests
-- MCP tools registered: 78
+- `pytest`: 33 passing tests
+- MCP tools registered: 80
 - Desktop/native AEDT smoke: passing on AEDT 2024 R2
 
 ## Documentation

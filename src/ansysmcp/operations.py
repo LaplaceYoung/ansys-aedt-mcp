@@ -264,6 +264,49 @@ PROJECT_DESIGN_OPERATION_METHODS = {
     "validate_full_design",
     "validate_simple",
 }
+POST_OPERATION_METHODS = {
+    "animate_fields_from_aedtplt",
+    "available_report_quantities",
+    "available_report_solutions",
+    "change_field_property",
+    "copy_report_data",
+    "create_3d_plot",
+    "create_ami_initial_response_plot",
+    "create_ami_statistical_eye_plot",
+    "create_fieldplot_cutplane",
+    "create_fieldplot_layers",
+    "create_fieldplot_layers_nets",
+    "create_fieldplot_line",
+    "create_fieldplot_nets",
+    "create_fieldplot_surface",
+    "create_fieldplot_volume",
+    "create_report_from_configuration",
+    "create_statistical_eye_plot",
+    "delete_field_plot",
+    "delete_report",
+    "export_field_file",
+    "export_field_file_on_grid",
+    "export_field_jpg",
+    "export_mesh_obj",
+    "export_model_obj",
+    "export_model_picture",
+    "export_report_to_csv",
+    "export_report_to_file",
+    "export_report_to_jpg",
+    "get_all_report_quantities",
+    "get_efields_data",
+    "get_field_extremum",
+    "get_model_plotter_geometries",
+    "get_scalar_field_value",
+    "get_solution_data_per_variation",
+    "paste_report_data",
+    "plot_animated_field",
+    "plot_field",
+    "plot_field_from_fieldplot",
+    "plot_model_obj",
+    "plot_scene",
+    "rename_report",
+}
 NEAR_FIELD_METHODS = {
     "box": "insert_near_field_box",
     "line": "insert_near_field_line",
@@ -1406,6 +1449,48 @@ def get_monitor_data(manager: AedtSessionManager) -> dict[str, Any]:
     if not hasattr(app, "get_monitor_data"):
         raise AedtError("Active app does not expose get_monitor_data.")
     return {"monitor_data": to_jsonable(app.get_monitor_data())}
+
+
+def post_summary(manager: AedtSessionManager) -> dict[str, Any]:
+    post = manager.target("post")
+    summary: dict[str, Any] = {}
+    for attr in (
+        "all_report_names",
+        "available_report_types",
+        "field_plot_names",
+        "post_solution_type",
+        "update_report_dynamically",
+    ):
+        if hasattr(post, attr):
+            try:
+                summary[attr] = to_jsonable(getattr(post, attr))
+            except Exception as exc:
+                summary[attr] = {"error": str(exc)}
+    for method_name in ("available_report_solutions", "get_all_report_quantities"):
+        if hasattr(post, method_name):
+            try:
+                summary[method_name] = to_jsonable(getattr(post, method_name)())
+            except Exception as exc:
+                summary[method_name] = {"error": str(exc)}
+    return summary
+
+
+def post_operation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_attr_name(method)
+    if method not in POST_OPERATION_METHODS:
+        supported = ", ".join(sorted(POST_OPERATION_METHODS))
+        raise AedtError(f"Unsupported post operation '{method}'. Supported: {supported}.")
+    post = manager.target("post")
+    if not hasattr(post, method):
+        raise AedtError(f"Post object does not expose {method}.")
+    result = getattr(post, method)(*(args or []), **dict(kwargs or {}))
+    return {"method": method, "result": to_jsonable(result)}
 
 
 def insert_near_field(

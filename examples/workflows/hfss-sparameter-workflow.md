@@ -19,6 +19,8 @@ aedt_validate_design(validation_kind="simple")
 aedt_analyze_setup(name="Setup1", cores=8, blocking=true)
 aedt_create_output_variable(variable="s11_db", expression="dB(S(1,1))")
 aedt_create_report(expressions="dB(S(1,1))", report_name="S11")
+aedt_post_summary
+aedt_post_operation(method="export_report_to_jpg", args=["outputs", "S11"], kwargs={"width": 1200})
 aedt_get_traces_for_plot(kwargs={"setup": "Setup1"})
 aedt_get_touchstone_data(setup="Setup1")
 aedt_export_report(report_name="S11", output_path="outputs")

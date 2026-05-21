@@ -65,6 +65,8 @@ from ansysmcp.operations import (
     native_get_property_value,
     native_module_call,
     new_project,
+    post_operation,
+    post_summary,
     project_design_operation,
     q3d_operation,
     read_design_data,
@@ -892,6 +894,24 @@ def aedt_get_monitor_data() -> dict[str, Any]:
 
 
 @mcp.tool()
+def aedt_post_summary() -> dict[str, Any]:
+    """Return report names, report types, field plots, and available post quantities."""
+    with manager.locked():
+        return post_summary(manager)
+
+
+@mcp.tool()
+def aedt_post_operation(
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run an allowlisted post-processing operation for reports, fields, plots, or exports."""
+    with manager.locked():
+        return post_operation(manager, method=method, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
 def aedt_insert_near_field(
     field_kind: Literal["box", "line", "points", "rectangle", "sphere"],
     args: list[Any] | None = None,
@@ -1266,6 +1286,8 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_get_traces_for_plot",
             "aedt_get_touchstone_data",
             "aedt_get_monitor_data",
+            "aedt_post_summary",
+            "aedt_post_operation",
             "aedt_insert_near_field",
             "aedt_export_report",
             "aedt_export_field_plot",
