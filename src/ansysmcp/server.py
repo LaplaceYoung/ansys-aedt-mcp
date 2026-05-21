@@ -62,6 +62,7 @@ from ansysmcp.operations import (
     materials_summary,
     maxwell_operation,
     mesh_operation,
+    mesh_summary,
     modeler_operation,
     modeler_summary,
     native_change_property,
@@ -69,6 +70,10 @@ from ansysmcp.operations import (
     native_get_property_value,
     native_module_call,
     new_project,
+    optimetrics_setup_operation,
+    optimetrics_summary,
+    optimization_operation,
+    parametric_operation,
     post_operation,
     post_summary,
     project_design_operation,
@@ -478,6 +483,13 @@ def aedt_mesh_operation(
 
 
 @mcp.tool()
+def aedt_mesh_summary() -> dict[str, Any]:
+    """Return mesh operation names, mesh operations, and initial mesh settings."""
+    with manager.locked():
+        return mesh_summary(manager)
+
+
+@mcp.tool()
 def aedt_create_frequency_sweep(
     sweep_kind: str,
     args: list[Any] | None = None,
@@ -774,6 +786,55 @@ def aedt_create_parametric_sweep(
             step=step,
             name=name,
             variation_type=variation_type,
+        )
+
+
+@mcp.tool()
+def aedt_optimetrics_summary() -> dict[str, Any]:
+    """Return parametric and optimization setup names from Optimetrics managers."""
+    with manager.locked():
+        return optimetrics_summary(manager)
+
+
+@mcp.tool()
+def aedt_parametric_operation(
+    method: Literal["add", "add_from_file", "delete"],
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run an allowlisted Parametrics manager operation."""
+    with manager.locked():
+        return parametric_operation(manager, method=method, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_optimization_operation(
+    method: Literal["add", "delete"],
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run an allowlisted Optimizations manager operation."""
+    with manager.locked():
+        return optimization_operation(manager, method=method, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_optimetrics_setup_operation(
+    collection: Literal["parametrics", "optimizations"],
+    setup_name: str,
+    method: Literal["add_calculation", "analyze", "create", "delete", "update"],
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run an allowlisted operation on an existing Optimetrics setup."""
+    with manager.locked():
+        return optimetrics_setup_operation(
+            manager,
+            collection=collection,
+            setup_name=setup_name,
+            method=method,
+            args=args,
+            kwargs=kwargs,
         )
 
 
@@ -1313,6 +1374,7 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_create_port",
             "aedt_source_port_summary",
             "aedt_mesh_operation",
+            "aedt_mesh_summary",
             "aedt_create_setup",
             "aedt_setup_summary",
             "aedt_get_setup_properties",
@@ -1323,6 +1385,10 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_import_cad",
             "aedt_delete_item",
             "aedt_create_parametric_sweep",
+            "aedt_optimetrics_summary",
+            "aedt_parametric_operation",
+            "aedt_optimization_operation",
+            "aedt_optimetrics_setup_operation",
             "aedt_create_optimization",
             "aedt_analyze",
             "aedt_analyze_setup",

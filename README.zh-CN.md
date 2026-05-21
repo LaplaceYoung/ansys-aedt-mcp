@@ -75,11 +75,11 @@ uv run ansys-aedt-mcp --transport streamable-http
 | 会话 | `aedt_start_session`, `aedt_release_session`, `aedt_session_info` |
 | 项目与设计 | `aedt_open_project`, `aedt_save_project`, `aedt_list_projects`, `aedt_new_project`, `aedt_insert_design`, `aedt_set_active_project`, `aedt_set_active_design`, `aedt_design_summary` |
 | 变量与数据集 | `aedt_set_variable`, `aedt_get_variables`, `aedt_create_dataset`, `aedt_import_dataset` |
-| 建模与材料 | `aedt_create_geometry`, `aedt_modeler_summary`, `aedt_modeler_operation`, `aedt_assign_material`, `aedt_materials_summary`, `aedt_materials_operation`, `aedt_material_object_summary`, `aedt_mesh_operation`, `aedt_import_cad` |
+| 建模与材料 | `aedt_create_geometry`, `aedt_modeler_summary`, `aedt_modeler_operation`, `aedt_assign_material`, `aedt_materials_summary`, `aedt_materials_operation`, `aedt_material_object_summary`, `aedt_mesh_operation`, `aedt_mesh_summary`, `aedt_import_cad` |
 | 端口与激励 | `aedt_create_port`, `aedt_source_port_summary`, `aedt_assign_boundary_or_excitation` |
 | Solver 专用控制 | `aedt_hfss_operation`, `aedt_maxwell_operation`, `aedt_q3d_operation`, `aedt_icepak_operation`, `aedt_circuit_operation` |
 | 仿真 | `aedt_create_setup`, `aedt_setup_summary`, `aedt_get_setup_properties`, `aedt_update_setup`, `aedt_create_frequency_sweep`, `aedt_create_open_region`, `aedt_analyze`, `aedt_analyze_setup`, `aedt_solve_in_batch`, `aedt_apply_solved_variation`, `aedt_validate_design`, `aedt_cleanup_solution`, `aedt_list_variations` |
-| 探索 | `aedt_create_parametric_sweep`, `aedt_create_optimization` |
+| 探索 | `aedt_create_parametric_sweep`, `aedt_create_optimization`, `aedt_optimetrics_summary`, `aedt_parametric_operation`, `aedt_optimization_operation`, `aedt_optimetrics_setup_operation` |
 | 后处理 | `aedt_create_output_variable`, `aedt_get_output_variable`, `aedt_get_evaluated_value`, `aedt_get_nominal_variation`, `aedt_get_profile`, `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data`, `aedt_get_traces_for_plot`, `aedt_get_touchstone_data`, `aedt_get_monitor_data`, `aedt_post_summary`, `aedt_post_operation`, `aedt_insert_near_field` |
 | 导出 | `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_diagnostics`, `aedt_export_matrix_data`, `aedt_export_icepak_summary`, `aedt_export_app_data` |
 | 删除 | `aedt_delete_item` |
@@ -88,7 +88,7 @@ uv run ansys-aedt-mcp --transport streamable-http
 | 原生属性 | `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property` |
 | 广覆盖 API/工作流 | `aedt_run_app_method`, `aedt_list_api`, `aedt_call`, `aedt_batch_call` |
 
-当前 MCP 注册工具数：**85**。
+当前 MCP 注册工具数：**90**。
 
 ## 验证命令
 
@@ -104,8 +104,8 @@ uv run python scripts/aedt_smoke.py --mode desktop --version 2024.2 --create-pro
 当前本地状态：
 
 - `ruff check` 通过
-- `pytest` 34 个用例通过
-- MCP 注册 85 个工具
+- `pytest` 35 个用例通过
+- MCP 注册 90 个工具
 - AEDT 2024 R2 Desktop/native 烟测通过
 
 ## 示例

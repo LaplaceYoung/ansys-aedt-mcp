@@ -41,6 +41,15 @@ SWEEP_METHODS = {
     "linear_step": "create_linear_step_sweep",
     "single_point": "create_single_point_sweep",
 }
+PARAMETRIC_OPERATION_METHODS = {"add", "add_from_file", "delete"}
+OPTIMIZATION_OPERATION_METHODS = {"add", "delete"}
+OPTIMETRICS_SETUP_OPERATION_METHODS = {
+    "add_calculation",
+    "analyze",
+    "create",
+    "delete",
+    "update",
+}
 MODELER_OPERATION_METHODS = {
     "automatic_thicken_sheets",
     "change_region_coordinate_system",
@@ -921,6 +930,132 @@ def create_parametric_sweep(
     return {"parametric": to_jsonable(result)}
 
 
+def optimetrics_summary(manager: AedtSessionManager) -> dict[str, Any]:
+    summary: dict[str, Any] = {}
+    for target_name in ("parametrics", "optimizations"):
+        try:
+            collection = manager.target(target_name)
+        except Exception as exc:
+            summary[target_name] = {"error": str(exc)}
+            continue
+        item: dict[str, Any] = {
+            "type": f"{type(collection).__module__}.{type(collection).__name__}",
+        }
+        setups = getattr(collection, "setups", None)
+        if setups is not None:
+            item["setups"] = [
+                to_jsonable(getattr(setup, "name", setup)) for setup in list(setups)
+            ]
+        if hasattr(collection, "design_setups"):
+            try:
+                item["design_setups"] = sorted(str(name) for name in collection.design_setups)
+            except Exception as exc:
+                item["design_setups"] = {"error": str(exc)}
+        summary[target_name] = item
+    return summary
+
+
+def parametric_operation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    return optimetrics_collection_operation(
+        manager,
+        collection_name="parametrics",
+        allowed_methods=PARAMETRIC_OPERATION_METHODS,
+        method=method,
+        args=args,
+        kwargs=kwargs,
+    )
+
+
+def optimization_operation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    return optimetrics_collection_operation(
+        manager,
+        collection_name="optimizations",
+        allowed_methods=OPTIMIZATION_OPERATION_METHODS,
+        method=method,
+        args=args,
+        kwargs=kwargs,
+    )
+
+
+def optimetrics_collection_operation(
+    manager: AedtSessionManager,
+    *,
+    collection_name: str,
+    allowed_methods: set[str],
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_attr_name(method)
+    if method not in allowed_methods:
+        supported = ", ".join(sorted(allowed_methods))
+        raise AedtError(
+            f"Unsupported {collection_name} operation '{method}'. Supported: {supported}."
+        )
+    collection = manager.target(collection_name)
+    if not hasattr(collection, method):
+        raise AedtError(f"{collection_name} object does not expose {method}.")
+    result = getattr(collection, method)(*(args or []), **dict(kwargs or {}))
+    return {"collection": collection_name, "method": method, "result": to_jsonable(result)}
+
+
+def optimetrics_setup_operation(
+    manager: AedtSessionManager,
+    *,
+    collection: str,
+    setup_name: str,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_attr_name(method)
+    if method not in OPTIMETRICS_SETUP_OPERATION_METHODS:
+        supported = ", ".join(sorted(OPTIMETRICS_SETUP_OPERATION_METHODS))
+        raise AedtError(
+            f"Unsupported Optimetrics setup operation '{method}'. Supported: {supported}."
+        )
+    collection_name = collection.lower().strip()
+    if collection_name not in {"parametrics", "optimizations"}:
+        raise AedtError("Optimetrics setup collection must be parametrics or optimizations.")
+    target_collection = manager.target(collection_name)
+    setup = find_optimetrics_setup(target_collection, setup_name)
+    if not hasattr(setup, method):
+        raise AedtError(f"Optimetrics setup {setup_name} does not expose {method}.")
+    result = getattr(setup, method)(*(args or []), **dict(kwargs or {}))
+    return {
+        "collection": collection_name,
+        "setup": setup_name,
+        "method": method,
+        "result": to_jsonable(result),
+    }
+
+
+def find_optimetrics_setup(collection: Any, setup_name: str) -> Any:
+    if hasattr(collection, "design_setups"):
+        try:
+            design_setups = collection.design_setups
+            if setup_name in design_setups:
+                return design_setups[setup_name]
+        except Exception:
+            pass
+    for setup in list(getattr(collection, "setups", []) or []):
+        if getattr(setup, "name", None) == setup_name:
+            return setup
+    raise AedtError(f"Optimetrics setup '{setup_name}' was not found.")
+
+
 def create_geometry(
     manager: AedtSessionManager,
     *,
@@ -1593,6 +1728,20 @@ def mesh_operation(
         raise AedtError(f"Mesh object does not expose {method}.")
     result = getattr(mesh, method)(*(args or []), **dict(kwargs or {}))
     return {"method": method, "result": to_jsonable(result)}
+
+
+def mesh_summary(manager: AedtSessionManager) -> dict[str, Any]:
+    mesh = manager.target("mesh")
+    summary: dict[str, Any] = {
+        "type": f"{type(mesh).__module__}.{type(mesh).__name__}",
+    }
+    for attr in ("meshoperation_names", "meshoperations", "initial_mesh_settings"):
+        if hasattr(mesh, attr):
+            try:
+                summary[attr] = to_jsonable(getattr(mesh, attr))
+            except Exception as exc:
+                summary[attr] = {"error": str(exc)}
+    return summary
 
 
 def native_module_call(

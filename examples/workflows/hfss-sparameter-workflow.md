@@ -16,7 +16,9 @@ aedt_create_port(method="wave_port", args=["Face1"], kwargs={"name": "P1"})
 aedt_hfss_operation(method="create_scattering", kwargs={"ports": ["P1"]})
 aedt_create_setup(name="Setup1", properties={"Frequency": "10GHz", "MaximumPasses": 8})
 aedt_create_frequency_sweep(sweep_kind="linear_count", args=["Setup1", "GHz", 1, 10])
+aedt_mesh_summary
 aedt_validate_design(validation_kind="simple")
+aedt_optimetrics_summary
 aedt_analyze_setup(name="Setup1", cores=8, blocking=true)
 aedt_create_output_variable(variable="s11_db", expression="dB(S(1,1))")
 aedt_create_report(expressions="dB(S(1,1))", report_name="S11")

@@ -50,6 +50,7 @@ from ansysmcp.operations import (
     materials_summary,
     maxwell_operation,
     mesh_operation,
+    mesh_summary,
     modeler_operation,
     modeler_summary,
     native_change_property,
@@ -57,6 +58,10 @@ from ansysmcp.operations import (
     native_get_property_value,
     native_module_call,
     new_project,
+    optimetrics_setup_operation,
+    optimetrics_summary,
+    optimization_operation,
+    parametric_operation,
     post_operation,
     post_summary,
     project_design_operation,
@@ -131,6 +136,13 @@ class DummyModeler:
 
 
 class DummyOptimizations:
+    def __init__(self) -> None:
+        self.setups = [DummyOptimetricsSetup("Opt1")]
+
+    @property
+    def design_setups(self):
+        return {setup.name: setup for setup in self.setups}
+
     def add(self, calculation=None, ranges=None, variables=None, optimization_type="Optimization"):
         return {
             "calculation": calculation,
@@ -138,6 +150,47 @@ class DummyOptimizations:
             "variables": variables,
             "optimization_type": optimization_type,
         }
+
+    def delete(self, name):
+        return {"deleted": name}
+
+
+class DummyParametrics:
+    def __init__(self) -> None:
+        self.setups = [DummyOptimetricsSetup("Param1")]
+
+    @property
+    def design_setups(self):
+        return {setup.name: setup for setup in self.setups}
+
+    def add(self, variable, start_point, end_point=None, step=100, variation_type="LinearCount"):
+        return {
+            "variable": variable,
+            "start_point": start_point,
+            "end_point": end_point,
+            "step": step,
+            "variation_type": variation_type,
+        }
+
+    def add_from_file(self, input_file, name=None):
+        return {"input_file": input_file, "name": name}
+
+    def delete(self, name):
+        return {"deleted": name}
+
+
+class DummyOptimetricsSetup:
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.props = {"Goals": []}
+
+    def update(self, update_dictionary=None):
+        if update_dictionary:
+            self.props.update(update_dictionary)
+        return {"updated": self.name, "props": self.props}
+
+    def add_calculation(self, calculation, ranges=None, variables=None):
+        return {"calculation": calculation, "ranges": ranges, "variables": variables}
 
 
 class DummyPost:
@@ -196,6 +249,10 @@ class DummyPost:
 
 
 class DummyMesh:
+    meshoperation_names = ["Length1"]
+    meshoperations = ["Length1"]
+    initial_mesh_settings = {"method": "Auto"}
+
     def assign_length_mesh(self, assignment, maximum_length):
         return {"assignment": assignment, "maximum_length": maximum_length}
 
@@ -264,6 +321,7 @@ class DummyApp:
         self.variable_manager = DummyVariableManager()
         self.modeler = DummyModeler()
         self.optimizations = DummyOptimizations()
+        self.parametrics = DummyParametrics()
         self.post = DummyPost()
         self.mesh = DummyMesh()
         self.materials = DummyMaterials()
@@ -707,6 +765,43 @@ def test_create_optimization_uses_optimetrics_api() -> None:
     assert result["optimization"]["calculation"] == "dB(S(1,1))"
 
 
+def test_optimetrics_summary_and_operations_use_manager_apis() -> None:
+    manager = active_manager()
+    summary = optimetrics_summary(manager)
+    parametric = parametric_operation(
+        manager,
+        method="add",
+        args=["w", "1mm"],
+        kwargs={"end_point": "5mm", "step": "1mm"},
+    )
+    optimization = optimization_operation(
+        manager,
+        method="delete",
+        args=["Opt1"],
+    )
+    setup = optimetrics_setup_operation(
+        manager,
+        collection="parametrics",
+        setup_name="Param1",
+        method="add_calculation",
+        args=["dB(S(1,1))"],
+        kwargs={"ranges": {"Freq": ["1GHz"]}},
+    )
+    updated = optimetrics_setup_operation(
+        manager,
+        collection="optimizations",
+        setup_name="Opt1",
+        method="update",
+        kwargs={"update_dictionary": {"MaxIterations": 10}},
+    )
+    assert summary["parametrics"]["setups"] == ["Param1"]
+    assert summary["optimizations"]["setups"] == ["Opt1"]
+    assert parametric["result"]["end_point"] == "5mm"
+    assert optimization["result"]["deleted"] == "Opt1"
+    assert setup["result"]["calculation"] == "dB(S(1,1))"
+    assert updated["result"]["props"]["MaxIterations"] == 10
+
+
 def test_create_field_plot_dispatches_by_kind() -> None:
     result = create_field_plot(
         active_manager(),
@@ -858,8 +953,11 @@ def test_boundary_and_mesh_wrappers_dispatch_to_app_objects() -> None:
         args=["Box1"],
         kwargs={"maximum_length": "1mm"},
     )
+    mesh_data = mesh_summary(manager)
     assert boundary["result"] == {"assignment": "Face1", "name": "P1"}
     assert mesh["result"] == {"assignment": "Box1", "maximum_length": "1mm"}
+    assert mesh_data["meshoperation_names"] == ["Length1"]
+    assert mesh_data["initial_mesh_settings"]["method"] == "Auto"
 
 
 def test_port_and_source_summary_wrappers_dispatch_to_app() -> None:
