@@ -1,106 +1,100 @@
 {
-  "user_brief": "Create an original square repository logo for an open-source non-commercial project named 'Ansys AEDT MCP Server'. Do not copy or imitate the official Ansys logo or any trademark. Visual concept: abstract electromagnetic field lines, simulation mesh, small connected MCP nodes, and a subtle desktop engineering tool motif. Professional technical style, clean vector-like raster, high contrast, modern GitHub project branding, works at small avatar size, no visible text, transparent background if supported. Use a palette of deep graphite, electric cyan, signal amber, and white highlights.",
+  "user_brief": "Create an original square logo for the open-source GitHub project 'ansys-aedt-mcp'. The project is a non-commercial Model Context Protocol server for Ansys Electronics Desktop automation through PyAEDT. Visual concept: electromagnetic field lines, circuit/mesh geometry, simulation nodes, and an MCP connector motif. Style: modern technical open-source repository mark, clean vector-like raster logo, high contrast, works on GitHub README light and dark themes. Avoid copying Ansys branding, avoid official trademarks, avoid dense text. Include at most a small readable 'AEDT MCP' mark if text is reliable.",
   "research_dossier_used": true,
   "research_queries": [
-    "Ansys Electronics Desktop official product overview site:ansys.com",
-    "Ansys trademark usage guidelines site:ansys.com",
-    "Ansys Electronics Desktop unified platform electromagnetic simulation site:ansyshelp.ansys.com",
-    "Model Context Protocol server visual icon nodes abstract logo"
+    "Ansys Electronics Desktop AEDT official overview PyAEDT",
+    "PyAEDT official documentation Ansys Developer Portal",
+    "Model Context Protocol official specification overview",
+    "GitHub Ansys open source organization repository AEDT Python Client Package"
   ],
   "research_notes": [
     {
-      "point": "Ansys Electronics Desktop (AEDT) is described by Ansys as a platform for electronics system design and access to EM solvers such as HFSS, Maxwell, Q3D Extractor, SIwave, and Icepak.",
-      "source": "Ansys Electronics product page (ansys.com/products/electronics)"
+      "point": "AEDT is Ansys Electronics Desktop, a platform for electronics system design and access to EM simulation tools such as HFSS, Maxwell, Q3D Extractor, SIwave, and Icepak.",
+      "source": "ansys.com/products/electronics"
     },
     {
-      "point": "AEDT is characterized in Ansys documentation as a unified environment where electromagnetic, thermal, and circuit designs can be created, simulated, and post-processed.",
-      "source": "Getting Started with Ansys Electronics Desktop (ansyshelp.ansys.com)"
+      "point": "Ansys Developer documentation states AEDT supports ACT Python scripting and the PyAEDT and PyEDB libraries.",
+      "source": "developer.ansys.com/docs/ansys-developer-product-guide/electronics_and_semiconductors.md"
     },
     {
-      "point": "Ansys developer documentation states AEDT supports scripting/automation through ACT Python, PyAEDT, and related libraries.",
-      "source": "Ansys Developer Portal electronics and semiconductors guide (developer.ansys.com)"
+      "point": "PyAEDT is the Python-facing automation layer for AEDT workflows, enabling simulation orchestration and data exchange.",
+      "source": "developer.ansys.com/blog/introduction-pyaedt"
     },
     {
-      "point": "Ansys has trademark usage guidelines; official marks should not be copied or imitated in derivative branding.",
-      "source": "Ansys Trademark Usage Guidelines PDF (ansys.com)"
+      "point": "MCP stands for Model Context Protocol; the spec is versioned and centered on a standardized protocol for tool/context interoperability.",
+      "source": "modelcontextprotocol.io/specification and modelcontextprotocol.io/specification/2024-11-05/basic"
     },
     {
-      "point": "Ansys broadly positions its products around physics-based simulation and engineering workflows across electronics and multiphysics.",
-      "source": "Ansys company information page (ansys.com/company-information)"
+      "point": "Ansys maintains an open-source GitHub organization, so the project should visually fit an OSS repository identity rather than product packaging.",
+      "source": "github.com/ansys"
     }
   ],
   "visual_strategy": {
-    "use_case": "Square GitHub repository avatar/logo for an open-source engineering tooling project",
-    "asset_type": "Original abstract technical icon / emblem",
-    "audience": "Developers, simulation engineers, automation users, GitHub visitors",
-    "core_message": "A professional, compact emblem that suggests electromagnetic simulation, engineering automation, and connected server orchestration without using any trademarked brand identity",
+    "use_case": "Square GitHub repository avatar / README logo for a private, non-commercial open-source technical project.",
+    "asset_type": "Original vector-like raster logo mark with optional tiny wordmark.",
+    "audience": "Developers, engineers, and open-source users browsing a GitHub repository.",
+    "core_message": "A clean protocol bridge for automating electronics simulation workflows through a modern MCP server.",
     "brand_or_subject_signals": [
-      "Electromagnetic field simulation",
-      "Finite-element mesh / solver geometry",
-      "Connected MCP nodes / protocol graph",
-      "Subtle desktop engineering tool motif",
-      "High-contrast technical GitHub branding"
+      "electronics simulation",
+      "electromagnetic field visualization",
+      "mesh/circuit geometry",
+      "automation and scripting",
+      "MCP connector / interoperability",
+      "open-source repository identity"
     ]
   },
   "reference_fidelity": {
     "mode": "reference-informed private generation",
     "original_elements_to_preserve": [
-      "Abstract electromagnetic field visualization language inspired by AEDT context",
-      "Simulation mesh or faceted solver geometry",
-      "Unified desktop engineering tool feeling without copying any UI",
-      "Automation/network node cues consistent with MCP server tooling",
-      "Professional physics-based simulation identity",
-      "Strictly avoid copying or imitating the official Ansys logo, mark, or trademark color/layout language"
+      "Use the domain language of Ansys Electronics Desktop only as abstract cues: electromagnetic field lines, circuit traces, mesh grids, and simulation nodes.",
+      "Represent PyAEDT through automation/connector energy rather than any product UI or branded packaging.",
+      "Represent MCP as a universal protocol bridge, connector, or hub motif.",
+      "Keep the design clearly original and not visually adjacent to the Ansys wordmark, logo, or official color-block branding."
     ],
     "style_or_poster_language_to_reference": [
-      "Technical software emblem",
-      "Clean vector-like raster iconography",
-      "Minimal, bold silhouette for small-avatar legibility",
-      "High contrast, centered composition",
-      "Modern engineering product branding"
+      "Modern technical open-source repository mark",
+      "Clean geometric iconography",
+      "High-contrast readable silhouette at avatar scale",
+      "Minimal vector-like raster treatment",
+      "Abstract simulation-inspired motifs rather than literal screenshots"
     ],
     "inferred_creative_additions": [
-      "A central geometric core wrapped by luminous field arcs",
-      "3–5 small connected nodes integrated into the perimeter or core",
-      "A faint abstract window/panel frame suggesting a desktop engineering tool",
-      "A restrained mesh overlay to imply simulation without clutter",
-      "A subtle server/network structure that reads well at 32x32 and 64x64"
+      "A central connector hub that feels like a protocol node linking multiple endpoints.",
+      "Radiating electromagnetic field arcs that double as a signal/network motif.",
+      "A compact mesh ring or polygonal lattice to evoke simulation geometry.",
+      "Three to five small nodes around the emblem to suggest distributed tools/services.",
+      "Optional tiny 'AEDT MCP' text only if perfectly legible and integrated unobtrusively."
     ]
   },
   "image_prompt": {
-    "primary_request": "Create an original square repository logo for an open-source non-commercial project named Ansys AEDT MCP Server, as a clean technical emblem that suggests electromagnetic simulation, mesh-based solver geometry, small connected MCP nodes, and a subtle desktop engineering tool motif, while remaining fully original and not resembling any official Ansys branding.",
-    "scene_backdrop": "Transparent background if supported, otherwise a neutral deep graphite backdrop with no scenery, no environment, no extra objects",
-    "subject": "A centered abstract engineering icon: a bold faceted geometric core or shield-like module, wrapped by 2–4 luminous electromagnetic field arcs and contour-like waves, with a sparse simulation mesh overlay and 3–5 small connected MCP nodes arranged as a compact network constellation; include only a faint schematic window-frame or panel outline as a subtle desktop tool cue",
-    "composition_framing": "Square avatar composition, strong central focal point, thick readable silhouette, balanced symmetry with slight asymmetry for energy, clear negative space, designed to remain legible when downscaled to 32x32 and 64x64",
-    "style_medium": "Original clean vector-like raster logo, crisp edges, high-detail but simplified for icon legibility, modern technical branding, minimal and geometric, no photorealism, no illustration clutter",
-    "lighting_mood": "High contrast with luminous cyan and amber accents, white highlight points on node junctions and field intersections, subtle glow only, crisp and controlled rather than flashy",
-    "color_palette": "Deep graphite base, electric cyan primary glow, signal amber secondary accents, white highlights, dark neutral shadows, no pastels",
-    "materials_textures": "Smooth matte graphite body, precise glowing vector-like linework, sparse mesh facets, subtle metallic or glassy tech impression, clean polished surfaces without realism-heavy texture",
-    "typography_layout": "No visible text, no letters, no numbers, no wordmarks, no labels, no UI copy",
-    "text_verbatim": [],
+    "primary_request": "Create an original square logo for the GitHub project ansys-aedt-mcp: a modern technical open-source repository mark that combines a central MCP connector hub, electromagnetic field lines, circuit/mesh geometry, and a few simulation nodes into one compact, symmetrical emblem. It should feel like a clean software/project icon for an electronics simulation automation server, not a corporate brand.",
+    "scene_backdrop": "Simple plain background or subtle transparent-like neutral field with no environment, no room, no desk, no UI screenshots, no product render; the emblem must stand alone as a logo.",
+    "subject": "A bold central protocol bridge icon: interlocking connector shapes or a node hub at the center, surrounded by smooth electromagnetic arcs, mesh lattice lines, and a handful of small orbiting nodes that suggest simulation endpoints and automation flow.",
+    "composition_framing": "Perfect square composition, centered icon, balanced symmetry, strong silhouette, generous negative space, logo-first framing, avatar-safe margins, readable at small sizes, no busy depth or perspective distortion.",
+    "style_medium": "Clean vector-like raster logo, crisp edges, geometric abstraction, minimal but polished, subtle glow only if needed for separation, no photorealism, no 3D mockup, no heavy gradients, no clutter.",
+    "lighting_mood": "High contrast, crisp, energetic, technical, slightly luminous field effect, suitable for both light and dark GitHub themes.",
+    "color_palette": "Primarily monochrome or near-monochrome with one restrained electric accent such as cyan/teal or blue-violet; ensure excellent contrast on white and dark backgrounds; avoid Ansys corporate palette mimicry.",
+    "materials_textures": "Flat or near-flat vector surfaces, very subtle tonal variation, clean linework, precise geometry, no grain, no noise, no paper texture, no chrome, no glass, no photoreal materials.",
+    "typography_layout": "Prefer no text for maximum avatar clarity; if text is included, use only a tiny, highly legible 'AEDT MCP' mark integrated minimally beneath or beside the icon with generous spacing and no extra copy.",
+    "text_verbatim": [
+      "AEDT MCP"
+    ],
     "constraints": [
-      "Original icon only; do not copy or imitate the official Ansys logo or any trademarked branding",
-      "No visible text, letters, numbers, or symbols that read as typography",
-      "Keep the design readable at small avatar sizes",
-      "Prioritize a strong central silhouette and simple geometry",
-      "Use abstract electromagnetic field lines, not literal scientific diagrams",
-      "Include only a subtle desktop engineering tool motif, not a full UI screenshot",
-      "Use a square composition and centered emblem",
-      "Maintain a professional open-source GitHub repository logo aesthetic",
-      "Keep the palette limited to deep graphite, electric cyan, signal amber, and white highlights",
-      "Avoid clutter and preserve crisp vector-like edges"
+      "Original design only, not derivative of Ansys branding or any official product logo.",
+      "Square GitHub-friendly icon with a strong silhouette and clear center of focus.",
+      "Keep all text minimal and exact; avoid tiny unreadable lettering.",
+      "Use electronics simulation cues abstractly: field lines, mesh geometry, nodes, traces.",
+      "Make the MCP concept visible as a connector/bridge/hub, not as a generic cable.",
+      "Optimize for both light and dark backgrounds."
     ],
     "avoid": [
-      "Any resemblance to the official Ansys logo, color blocking, or brand identity",
-      "Visible text, wordmarks, or tiny unreadable labels",
-      "Overly complex circuitry or dense meshes that collapse at small size",
-      "Cartoon, playful, or sci-fi fantasy styling",
-      "Photorealism, 3D render look, or noisy gradients",
-      "Irrelevant objects, people, devices, landscapes, or office scenes",
-      "Messy typography, low detail, incoherent anatomy, or weak composition",
-      "Soft pastel palettes or generic app-icon clichés",
-      "Brand-confusable layouts or trademark-like shapes"
+      "Ansys wordmark, logo shapes, official trademarks, corporate color-block imitation, or product UI replicas",
+      "Dense text, multiple lines of copy, tiny labels, unreadable typography, or random letters",
+      "Photorealistic rendering, glossy 3D mockups, or complex scene backgrounds",
+      "Overly literal USB plug/cable imagery that feels generic instead of protocol-specific",
+      "Messy composition, cluttered schematic details, low contrast, poor silhouette, or irrelevant symbols",
+      "Copying any existing emblem, badge, or brand mark associated with Ansys, AEDT, or MCP"
     ]
   },
-  "final_generation_prompt": "Create an original square GitHub repository logo for the non-commercial open-source project 'Ansys AEDT MCP Server' that clearly feels like a professional engineering/simulation tool emblem while remaining fully original and not resembling the official Ansys logo or any trademark. Center a bold abstract geometric core with 2–4 luminous electromagnetic field arcs and contour-like wave lines, a sparse simulation mesh or faceted solver geometry, and 3–5 small connected MCP nodes integrated into the perimeter or core. Add only a very subtle schematic desktop engineering tool motif such as a faint window-frame or panel outline, not a literal UI screenshot. Style it as a clean vector-like raster icon with crisp edges, high contrast, minimal clutter, and strong readability at 32x32 and 64x64 sizes. Use a limited palette of deep graphite, electric cyan, signal amber, and white highlights. Transparent background if supported, otherwise neutral dark background. No visible text, no letters, no numbers, no wordmarks, no extra scenery, no photorealism, no cartoon style, and no resemblance to official Ansys branding."
+  "final_generation_prompt": "Design an original square GitHub logo for the open-source project 'ansys-aedt-mcp': a modern technical, high-contrast, vector-like raster emblem for a Model Context Protocol server that automates Ansys Electronics Desktop workflows through PyAEDT. Center a compact MCP connector hub or interlocking protocol bridge, wrapped with elegant electromagnetic field lines, circuit/mesh geometry, and 3–5 small simulation nodes to evoke electronics simulation and automation. Make the silhouette bold, symmetrical, and instantly legible at avatar size, with clean geometric linework and minimal detail. Use a monochrome or near-monochrome base with one restrained electric accent such as cyan/teal or blue-violet, optimized for both light and dark GitHub themes. Keep the background simple and uncluttered. Avoid any Ansys branding, official trademarks, corporate color-block mimicry, product screenshots, or generic cable/USB visuals. Prefer no text; if text is used, include only the exact small readable mark 'AEDT MCP' with perfect clarity and no additional words."
 }
