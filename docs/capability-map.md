@@ -18,7 +18,7 @@
 | Project | `aedt_open_project`, `aedt_save_project`, `aedt_list_projects`, `aedt_new_project`, `aedt_insert_design`, `aedt_set_active_project`, `aedt_set_active_design`, `aedt_design_summary` | Load, save, list, create projects, insert native designs, activate context, and summarize designs |
 | Variables | `aedt_set_variable`, `aedt_get_variables` | Project/design variable management |
 | Datasets/import | `aedt_create_dataset`, `aedt_import_dataset`, `aedt_import_cad` | AEDT design/project datasets and CAD/layout import |
-| Modeling | `aedt_create_geometry`, `aedt_assign_material`, `aedt_material_object_summary`, `aedt_mesh_operation`, `aedt_call(target="modeler")` | Common primitives, material assignment, object material property summaries, mesh operations, and full modeler bridge |
+| Modeling | `aedt_create_geometry`, `aedt_modeler_summary`, `aedt_modeler_operation`, `aedt_assign_material`, `aedt_material_object_summary`, `aedt_mesh_operation`, `aedt_call(target="modeler")` | Common primitives, modeler summaries, transforms, booleans, sweeps, coordinate systems, material assignment, object material property summaries, mesh operations, and full modeler bridge |
 | Setup/sweeps | `aedt_create_setup`, `aedt_setup_summary`, `aedt_get_setup_properties`, `aedt_update_setup`, `aedt_create_frequency_sweep`, `aedt_create_open_region`, `aedt_call(target="app")` | Setup creation, setup introspection, setup property updates, frequency sweeps, and open-region setup |
 | Boundaries/excitations | `aedt_assign_boundary_or_excitation`, `aedt_create_port`, `aedt_source_port_summary`, `aedt_native_module_call`, `aedt_call(target="omodule")` | Dedicated assignment dispatch, ports/sources, and native AEDT module control |
 | Solver-specific controls | `aedt_hfss_operation`, `aedt_maxwell_operation`, `aedt_q3d_operation`, `aedt_icepak_operation`, `aedt_circuit_operation` | Allowlisted HFSS boundaries/sources/scattering, Maxwell windings/motion/forces, Q3D nets/matrices, Icepak thermal controls, and Circuit schematic/source operations |
@@ -48,7 +48,7 @@
 ## Current Local Evidence
 
 - `uv sync --extra dev` succeeds with Python 3.12.10, `mcp 1.27.1`, and `pyaedt 0.27.1`.
-- MCP server currently registers 76 tools.
+- MCP server currently registers 78 tools.
 - `uv run pyaedt --json aedt-versions` detects AEDT `2024.2` at `G:\ANSYSEM2024\AnsysEM\v242\Win64`.
 - `aedt_start_session(app_name="desktop", version="2024.2", non_graphical=True)` launches and releases AEDT Desktop successfully.
 - `aedt_new_project(project_name="MCPNativeProject")` creates and lists a native AEDT project successfully.

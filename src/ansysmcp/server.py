@@ -58,6 +58,8 @@ from ansysmcp.operations import (
     material_object_summary,
     maxwell_operation,
     mesh_operation,
+    modeler_operation,
+    modeler_summary,
     native_change_property,
     native_get_properties,
     native_get_property_value,
@@ -312,6 +314,24 @@ def aedt_create_geometry(
     """Create geometry through app.modeler, for example primitive='box' maps to create_box."""
     with manager.locked():
         return create_geometry(manager, primitive=primitive, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_modeler_summary() -> dict[str, Any]:
+    """Return modeler object names, units, coordinate systems, and bounding-box metadata."""
+    with manager.locked():
+        return modeler_summary(manager)
+
+
+@mcp.tool()
+def aedt_modeler_operation(
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run an allowlisted modeler operation for transforms, booleans, sweeps, groups, or regions."""
+    with manager.locked():
+        return modeler_operation(manager, method=method, args=args, kwargs=kwargs)
 
 
 @mcp.tool()
@@ -1201,6 +1221,8 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_create_dataset",
             "aedt_import_dataset",
             "aedt_create_geometry",
+            "aedt_modeler_summary",
+            "aedt_modeler_operation",
             "aedt_assign_material",
             "aedt_material_object_summary",
             "aedt_assign_boundary_or_excitation",

@@ -46,6 +46,8 @@ from ansysmcp.operations import (
     material_object_summary,
     maxwell_operation,
     mesh_operation,
+    modeler_operation,
+    modeler_summary,
     native_change_property,
     native_get_properties,
     native_get_property_value,
@@ -97,10 +99,28 @@ class DummyVariable:
 class DummyModeler:
     def __init__(self) -> None:
         self.created = []
+        self.model_units = "mm"
+        self.object_names = ["Box1", "Box2"]
+        self.solid_names = ["Box1", "Box2"]
+        self.sheet_names = ["Sheet1"]
+        self.line_names = ["Line1"]
+        self.coordinate_systems = ["Global"]
 
     def create_box(self, position, dimensions, name=None, matname=None):
         self.created.append((position, dimensions, name, matname))
         return {"name": name, "material": matname}
+
+    def get_model_bounding_box(self):
+        return [0, 0, 0, 10, 20, 30]
+
+    def get_line_ids(self):
+        return {"Line1": 1}
+
+    def move(self, assignment, vector):
+        return {"assignment": assignment, "vector": vector}
+
+    def unite(self, assignment, purge=False, keep_originals=False):
+        return {"assignment": assignment, "purge": purge, "keep_originals": keep_originals}
 
 
 class DummyOptimizations:
@@ -519,6 +539,27 @@ def test_set_variable_uses_variable_manager() -> None:
 def test_assign_material_uses_app_api() -> None:
     result = assign_material(active_manager(), assignment=["Box1"], material="copper")
     assert result["result"] == {"assignment": ["Box1"], "material": "copper"}
+
+
+def test_modeler_summary_and_operation_use_modeler_api() -> None:
+    manager = active_manager()
+    summary = modeler_summary(manager)
+    moved = modeler_operation(
+        manager,
+        method="move",
+        args=[["Box1"], [1, 2, 3]],
+    )
+    united = modeler_operation(
+        manager,
+        method="unite",
+        args=[["Box1", "Box2"]],
+        kwargs={"keep_originals": True},
+    )
+    assert summary["model_units"] == "mm"
+    assert summary["object_names"] == ["Box1", "Box2"]
+    assert summary["get_model_bounding_box"] == [0, 0, 0, 10, 20, 30]
+    assert moved["result"]["vector"] == [1, 2, 3]
+    assert united["result"]["keep_originals"] is True
 
 
 def test_create_and_import_dataset_use_app_api() -> None:

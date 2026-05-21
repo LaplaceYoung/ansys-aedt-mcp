@@ -41,6 +41,70 @@ SWEEP_METHODS = {
     "linear_step": "create_linear_step_sweep",
     "single_point": "create_single_point_sweep",
 }
+MODELER_OPERATION_METHODS = {
+    "automatic_thicken_sheets",
+    "change_region_coordinate_system",
+    "change_region_padding",
+    "chassis_subtraction",
+    "clean_objects_name",
+    "cleanup_objects",
+    "cleanup_solids",
+    "connect",
+    "convert_segments_to_line",
+    "copy",
+    "cover_faces",
+    "cover_lines",
+    "create_air_region",
+    "create_coordinate_system",
+    "create_face_coordinate_system",
+    "create_face_list",
+    "create_group",
+    "create_object_coordinate_system",
+    "create_object_from_edge",
+    "create_object_from_face",
+    "create_object_list",
+    "create_outer_facelist",
+    "create_region",
+    "create_sheet_to_ground",
+    "create_subregion",
+    "detach_faces",
+    "duplicate_along_line",
+    "duplicate_and_mirror",
+    "duplicate_around_axis",
+    "duplicate_coordinate_system_to_global",
+    "edit_region_dimensions",
+    "explicitly_subtract",
+    "fit_all",
+    "generate_object_history",
+    "heal_objects",
+    "intersect",
+    "mirror",
+    "move",
+    "move_edge",
+    "move_face",
+    "objects_segmentation",
+    "project_sheet",
+    "reassign_subregion",
+    "rotate",
+    "section",
+    "separate_bodies",
+    "set_object_model_state",
+    "set_objects_deformation",
+    "set_objects_temperature",
+    "set_working_coordinate_system",
+    "simplify_objects",
+    "split",
+    "subtract",
+    "sweep_along_normal",
+    "sweep_along_path",
+    "sweep_along_vector",
+    "sweep_around_axis",
+    "thicken_sheet",
+    "uncover_faces",
+    "ungroup",
+    "unite",
+    "wrap_sheet",
+}
 DIAGNOSTIC_EXPORT_METHODS = {
     "convergence": "export_convergence",
     "mesh_stats": "export_mesh_stats",
@@ -803,6 +867,52 @@ def create_geometry(
         raise AedtError(f"Modeler does not expose '{method_name}'.")
     result = getattr(modeler, method_name)(*(args or []), **dict(kwargs or {}))
     return {"object": to_jsonable(result)}
+
+
+def modeler_summary(manager: AedtSessionManager) -> dict[str, Any]:
+    modeler = manager.target("modeler")
+    summary: dict[str, Any] = {}
+    for attr in (
+        "model_units",
+        "object_names",
+        "solid_names",
+        "sheet_names",
+        "line_names",
+        "coordinate_systems",
+        "model_objects",
+        "non_model_objects",
+        "unclassified_objects",
+    ):
+        if hasattr(modeler, attr):
+            try:
+                summary[attr] = to_jsonable(getattr(modeler, attr))
+            except Exception as exc:
+                summary[attr] = {"error": str(exc)}
+    for method_name in ("get_model_bounding_box", "get_line_ids", "find_new_objects"):
+        if hasattr(modeler, method_name):
+            try:
+                summary[method_name] = to_jsonable(getattr(modeler, method_name)())
+            except Exception as exc:
+                summary[method_name] = {"error": str(exc)}
+    return summary
+
+
+def modeler_operation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_attr_name(method)
+    if method not in MODELER_OPERATION_METHODS:
+        supported = ", ".join(sorted(MODELER_OPERATION_METHODS))
+        raise AedtError(f"Unsupported modeler operation '{method}'. Supported: {supported}.")
+    modeler = manager.target("modeler")
+    if not hasattr(modeler, method):
+        raise AedtError(f"Modeler does not expose {method}.")
+    result = getattr(modeler, method)(*(args or []), **dict(kwargs or {}))
+    return {"method": method, "result": to_jsonable(result)}
 
 
 def run_app_method(
