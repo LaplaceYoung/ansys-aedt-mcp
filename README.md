@@ -152,6 +152,7 @@ Current local status:
 ## Documentation
 
 - [Capability map](docs/capability-map.md)
+- [Examples](examples/README.md)
 - [Client configuration](docs/client-config.md)
 - [Verification log](docs/verification.md)
 - [Roadmap](docs/roadmap.md)

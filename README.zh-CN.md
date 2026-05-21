@@ -107,6 +107,10 @@ uv run python scripts/aedt_smoke.py --mode desktop --version 2024.2 --create-pro
 - MCP 注册 76 个工具
 - AEDT 2024 R2 Desktop/native 烟测通过
 
+## 示例
+
+- [工作流示例](examples/README.md)
+
 ## 许可
 
 项目采用 [PolyForm Noncommercial License 1.0.0](LICENSE.md)。
