@@ -13,7 +13,7 @@
 
 | Area | Tools | Coverage |
 | --- | --- | --- |
-| Environment | `aedt_environment` | Python/PyAEDT availability and supported app names |
+| Environment/API discovery | `aedt_environment`, `aedt_api_manifest` | Python/PyAEDT availability, supported app names, constructors, and public method signatures |
 | Session | `aedt_start_session`, `aedt_release_session`, `aedt_session_info` | Launch/connect to major AEDT apps |
 | Project | `aedt_open_project`, `aedt_save_project`, `aedt_list_projects`, `aedt_new_project`, `aedt_insert_design`, `aedt_set_active_project`, `aedt_set_active_design`, `aedt_design_summary` | Load, save, list, create projects, insert native designs, activate context, and summarize designs |
 | Variables | `aedt_set_variable`, `aedt_get_variables` | Project/design variable management |
@@ -44,7 +44,7 @@
 ## Current Local Evidence
 
 - `uv sync --extra dev` succeeds with Python 3.12.10, `mcp 1.27.1`, and `pyaedt 0.27.1`.
-- MCP server currently registers 34 tools.
+- MCP server currently registers 35 tools.
 - `uv run pyaedt --json aedt-versions` detects AEDT `2024.2` at `G:\ANSYSEM2024\AnsysEM\v242\Win64`.
 - `aedt_start_session(app_name="desktop", version="2024.2", non_graphical=True)` launches and releases AEDT Desktop successfully.
 - `aedt_new_project(project_name="MCPNativeProject")` creates and lists a native AEDT project successfully.

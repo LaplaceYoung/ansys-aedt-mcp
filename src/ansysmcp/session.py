@@ -377,3 +377,37 @@ def environment_report() -> dict[str, Any]:
         report["pyaedt_available"] = False
         report["pyaedt_error"] = str(exc)
     return report
+
+
+def api_manifest(app_name: str | None = None, *, include_private: bool = False) -> dict[str, Any]:
+    app_names = [normalize_app_name(app_name)] if app_name else sorted(APP_CLASS_PATHS)
+    manifest: dict[str, Any] = {}
+    for name in app_names:
+        app_class = import_app_class(name)
+        methods: dict[str, str] = {}
+        attributes: list[str] = []
+        for member_name in dir(app_class):
+            if not include_private and member_name.startswith("_"):
+                continue
+            try:
+                member = getattr(app_class, member_name)
+            except Exception:
+                continue
+            if callable(member):
+                methods[member_name] = signature_text(member)
+            else:
+                attributes.append(member_name)
+        manifest[name] = {
+            "class": f"{app_class.__module__}.{app_class.__name__}",
+            "constructor": signature_text(app_class),
+            "methods": dict(sorted(methods.items())),
+            "attributes": sorted(attributes),
+        }
+    return manifest
+
+
+def signature_text(callable_obj: Any) -> str:
+    try:
+        return str(inspect.signature(callable_obj))
+    except (TypeError, ValueError):
+        return "(...)"

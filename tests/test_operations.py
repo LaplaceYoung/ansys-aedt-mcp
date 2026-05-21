@@ -22,7 +22,13 @@ from ansysmcp.operations import (
     set_active_project,
     set_variable,
 )
-from ansysmcp.session import AedtError, AedtSessionManager, AedtSessionState, normalize_app_name
+from ansysmcp.session import (
+    AedtError,
+    AedtSessionManager,
+    AedtSessionState,
+    api_manifest,
+    normalize_app_name,
+)
 
 
 class DummyVariableManager:
@@ -220,6 +226,13 @@ def desktop_manager() -> AedtSessionManager:
 def test_normalize_app_name_accepts_alias() -> None:
     assert normalize_app_name("HFSS 3D") == "hfss"
     assert normalize_app_name("Maxwell_3D") == "maxwell3d"
+
+
+def test_api_manifest_reports_constructor_and_methods() -> None:
+    manifest = api_manifest("hfss")
+    assert "hfss" in manifest
+    assert "constructor" in manifest["hfss"]
+    assert "create_setup" in manifest["hfss"]["methods"]
 
 
 def test_invoke_calls_public_method() -> None:

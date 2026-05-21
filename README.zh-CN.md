@@ -71,7 +71,7 @@ uv run ansys-aedt-mcp --transport streamable-http
 
 | 领域 | 工具 |
 | --- | --- |
-| 环境 | `aedt_environment` |
+| 环境/API 发现 | `aedt_environment`, `aedt_api_manifest` |
 | 会话 | `aedt_start_session`, `aedt_release_session`, `aedt_session_info` |
 | 项目与设计 | `aedt_open_project`, `aedt_save_project`, `aedt_list_projects`, `aedt_new_project`, `aedt_insert_design` |
 | 变量与数据集 | `aedt_set_variable`, `aedt_get_variables`, `aedt_create_dataset`, `aedt_import_dataset` |
@@ -82,7 +82,7 @@ uv run ansys-aedt-mcp --transport streamable-http
 | 导出 | `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_app_data` |
 | 广覆盖 API | `aedt_run_app_method`, `aedt_list_api`, `aedt_call` |
 
-当前 MCP 注册工具数：**34**。
+当前 MCP 注册工具数：**35**。
 
 ## 验证命令
 
@@ -99,7 +99,7 @@ uv run python scripts/aedt_smoke.py --mode desktop --version 2024.2 --create-pro
 
 - `ruff check` 通过
 - `pytest` 17 个用例通过
-- MCP 注册 34 个工具
+- MCP 注册 35 个工具
 - AEDT 2024 R2 Desktop/native 烟测通过
 
 ## 许可

@@ -36,7 +36,7 @@ from ansysmcp.operations import (
     set_variable,
 )
 from ansysmcp.serialization import to_jsonable
-from ansysmcp.session import AedtSessionManager, environment_report
+from ansysmcp.session import AedtSessionManager, api_manifest, environment_report
 
 mcp = FastMCP("Ansys Electronics Desktop MCP")
 manager = AedtSessionManager()
@@ -46,6 +46,12 @@ manager = AedtSessionManager()
 def aedt_environment() -> dict[str, Any]:
     """Inspect Python and PyAEDT availability without launching AEDT."""
     return environment_report()
+
+
+@mcp.tool()
+def aedt_api_manifest(app_name: str | None = None, include_private: bool = False) -> dict[str, Any]:
+    """List PyAEDT app constructors and method signatures without launching AEDT."""
+    return api_manifest(app_name=app_name, include_private=include_private)
 
 
 @mcp.tool()
@@ -608,6 +614,7 @@ def aedt_capabilities_resource() -> dict[str, Any]:
     return {
         "dedicated_tools": [
             "aedt_environment",
+            "aedt_api_manifest",
             "aedt_start_session",
             "aedt_open_project",
             "aedt_save_project",
