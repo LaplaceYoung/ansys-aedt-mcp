@@ -11,6 +11,7 @@ aedt_create_geometry(primitive="box", args=[[0, 0, 0], ["l", "w", "1mm"]], kwarg
 aedt_modeler_summary
 aedt_modeler_operation(method="move", args=[["Trace"], ["1mm", "0mm", "0mm"]])
 aedt_assign_material(assignment="Trace", material="copper")
+aedt_materials_summary
 aedt_create_port(method="wave_port", args=["Face1"], kwargs={"name": "P1"})
 aedt_hfss_operation(method="create_scattering", kwargs={"ports": ["P1"]})
 aedt_create_setup(name="Setup1", properties={"Frequency": "10GHz", "MaximumPasses": 8})

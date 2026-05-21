@@ -75,7 +75,7 @@ After cloning from GitHub, replace the local path with your checkout path.
 | Session | `aedt_start_session`, `aedt_release_session`, `aedt_session_info` |
 | Project/design | `aedt_open_project`, `aedt_save_project`, `aedt_list_projects`, `aedt_new_project`, `aedt_insert_design`, `aedt_set_active_project`, `aedt_set_active_design`, `aedt_design_summary` |
 | Variables/datasets | `aedt_set_variable`, `aedt_get_variables`, `aedt_create_dataset`, `aedt_import_dataset` |
-| Modeling/materials | `aedt_create_geometry`, `aedt_modeler_summary`, `aedt_modeler_operation`, `aedt_assign_material`, `aedt_material_object_summary`, `aedt_mesh_operation`, `aedt_import_cad` |
+| Modeling/materials | `aedt_create_geometry`, `aedt_modeler_summary`, `aedt_modeler_operation`, `aedt_assign_material`, `aedt_materials_summary`, `aedt_materials_operation`, `aedt_material_object_summary`, `aedt_mesh_operation`, `aedt_import_cad` |
 | Ports/sources | `aedt_create_port`, `aedt_source_port_summary`, `aedt_assign_boundary_or_excitation` |
 | Solver-specific controls | `aedt_hfss_operation`, `aedt_maxwell_operation`, `aedt_q3d_operation`, `aedt_icepak_operation`, `aedt_circuit_operation` |
 | Simulation | `aedt_create_setup`, `aedt_setup_summary`, `aedt_get_setup_properties`, `aedt_update_setup`, `aedt_create_frequency_sweep`, `aedt_create_open_region`, `aedt_analyze`, `aedt_analyze_setup`, `aedt_solve_in_batch`, `aedt_apply_solved_variation`, `aedt_validate_design`, `aedt_cleanup_solution`, `aedt_list_variations` |
@@ -84,10 +84,11 @@ After cloning from GitHub, replace the local path with your checkout path.
 | Export | `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_diagnostics`, `aedt_export_matrix_data`, `aedt_export_icepak_summary`, `aedt_export_app_data` |
 | Deletion | `aedt_delete_item` |
 | Project/design maintenance | `aedt_change_design_settings`, `aedt_change_validation_settings`, `aedt_read_design_data`, `aedt_project_design_operation` |
+| Configuration | `aedt_configuration_summary`, `aedt_configuration_operation`, `aedt_update_configuration_options` |
 | Native properties | `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property` |
 | Broad API/workflows | `aedt_run_app_method`, `aedt_list_api`, `aedt_call`, `aedt_batch_call` |
 
-Current MCP registration: **80 tools**.
+Current MCP registration: **85 tools**.
 
 ## Example Workflows
 
@@ -109,6 +110,8 @@ aedt_set_variable(name="w", expression="10mm")
 aedt_create_geometry(primitive="box", args=[[0, 0, 0], ["w", "5mm", "1mm"]])
 aedt_modeler_operation(method="move", args=[["Box1"], ["1mm", "0mm", "0mm"]])
 aedt_assign_material(assignment="Box1", material="copper")
+aedt_materials_summary
+aedt_materials_operation(method="add_material", args=["demo_material"], kwargs={"properties": {"permittivity": 3.2}})
 aedt_create_port(method="wave_port", args=["Face1"], kwargs={"name": "P1"})
 aedt_hfss_operation(method="create_scattering", kwargs={"ports": ["P1"]})
 aedt_create_setup(name="Setup1")
@@ -148,8 +151,8 @@ uv run python scripts/aedt_smoke.py --mode desktop --version 2024.2 --create-pro
 Current local status:
 
 - `ruff check`: passing
-- `pytest`: 33 passing tests
-- MCP tools registered: 80
+- `pytest`: 34 passing tests
+- MCP tools registered: 85
 - Desktop/native AEDT smoke: passing on AEDT 2024 R2
 
 ## Documentation

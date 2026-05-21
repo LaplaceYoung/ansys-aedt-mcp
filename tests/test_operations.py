@@ -12,6 +12,8 @@ from ansysmcp.operations import (
     change_validation_settings,
     circuit_operation,
     cleanup_solution,
+    configuration_operation,
+    configuration_summary,
     create_dataset,
     create_field_plot,
     create_frequency_sweep,
@@ -44,6 +46,8 @@ from ansysmcp.operations import (
     list_projects,
     list_variations,
     material_object_summary,
+    materials_operation,
+    materials_summary,
     maxwell_operation,
     mesh_operation,
     modeler_operation,
@@ -64,6 +68,7 @@ from ansysmcp.operations import (
     setup_summary,
     solve_in_batch,
     source_port_summary,
+    update_configuration_options,
     update_setup,
     validate_design,
 )
@@ -195,6 +200,54 @@ class DummyMesh:
         return {"assignment": assignment, "maximum_length": maximum_length}
 
 
+class DummyMaterials:
+    def __init__(self) -> None:
+        self.material_keys = ["copper", "FR4_epoxy"]
+        self.surface_material_keys = ["black_paint"]
+        self.conductors = ["copper"]
+        self.dielectrics = ["FR4_epoxy"]
+        self.liquids = ["water"]
+        self.gases = ["air"]
+
+    def get_used_project_material_names(self):
+        return ["copper"]
+
+    def add_material(self, name, properties=None):
+        self.material_keys.append(name)
+        return {"name": name, "properties": properties or {}}
+
+    def export_materials_to_file(self, output_file):
+        return output_file
+
+
+class DummyConfigurationOptions:
+    def __init__(self) -> None:
+        self.export_variables = True
+        self.export_materials = True
+        self.import_variables = True
+        self.skip_import_if_exists = True
+
+    def set_all_export(self):
+        self.export_variables = True
+        self.export_materials = True
+        return True
+
+    def unset_all_import(self):
+        self.import_variables = False
+        return True
+
+
+class DummyConfigurations:
+    def __init__(self) -> None:
+        self.options = DummyConfigurationOptions()
+
+    def export_config(self, config_file=None, overwrite=False):
+        return {"config_file": config_file, "overwrite": overwrite}
+
+    def import_config(self, config_file, *args):
+        return {"config_file": config_file, "args": args}
+
+
 class DummySetup:
     def __init__(self, name: str) -> None:
         self.name = name
@@ -213,6 +266,8 @@ class DummyApp:
         self.optimizations = DummyOptimizations()
         self.post = DummyPost()
         self.mesh = DummyMesh()
+        self.materials = DummyMaterials()
+        self.configurations = DummyConfigurations()
         self.boundaries = ["Boundary1"]
         self.ports = ["P1"]
         self.sources = ["Source1"]
@@ -596,6 +651,41 @@ def test_modeler_summary_and_operation_use_modeler_api() -> None:
     assert summary["get_model_bounding_box"] == [0, 0, 0, 10, 20, 30]
     assert moved["result"]["vector"] == [1, 2, 3]
     assert united["result"]["keep_originals"] is True
+
+
+def test_materials_and_configuration_wrappers_use_manager_apis() -> None:
+    manager = active_manager()
+    material_summary = materials_summary(manager)
+    material_added = materials_operation(
+        manager,
+        method="add_material",
+        args=["new_dielectric"],
+        kwargs={"properties": {"permittivity": 3.2}},
+    )
+    material_export = materials_operation(
+        manager,
+        method="export_materials_to_file",
+        args=["materials.json"],
+    )
+    config_summary = configuration_summary(manager)
+    config_export = configuration_operation(
+        manager,
+        method="export_config",
+        kwargs={"config_file": "design.json", "overwrite": True},
+    )
+    config_options = update_configuration_options(
+        manager,
+        options={"skip_import_if_exists": False},
+        action="unset_all_import",
+    )
+    assert material_summary["conductors"] == ["copper"]
+    assert material_summary["used_project_material_names"] == ["copper"]
+    assert material_added["result"]["name"] == "new_dielectric"
+    assert material_export["result"] == "materials.json"
+    assert config_summary["options"]["export_variables"] is True
+    assert config_export["result"]["overwrite"] is True
+    assert config_options["options"]["import_variables"] is False
+    assert config_options["options"]["skip_import_if_exists"] is False
 
 
 def test_create_and_import_dataset_use_app_api() -> None:

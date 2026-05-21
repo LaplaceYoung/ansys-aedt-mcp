@@ -307,6 +307,31 @@ POST_OPERATION_METHODS = {
     "plot_scene",
     "rename_report",
 }
+MATERIAL_OPERATION_METHODS = {
+    "add_material",
+    "add_material_sweep",
+    "add_surface_material",
+    "duplicate_material",
+    "duplicate_surface_material",
+    "exists_material",
+    "export_materials_to_file",
+    "get_used_project_material_names",
+    "import_materials_from_excel",
+    "import_materials_from_file",
+    "import_materials_from_workbench",
+    "remove_material",
+}
+CONFIGURATION_OPERATION_METHODS = {
+    "export_config",
+    "import_config",
+    "update_monitor",
+}
+CONFIGURATION_OPTION_ACTIONS = {
+    "set_all_export",
+    "set_all_import",
+    "unset_all_export",
+    "unset_all_import",
+}
 NEAR_FIELD_METHODS = {
     "box": "insert_near_field_box",
     "line": "insert_near_field_line",
@@ -1639,6 +1664,118 @@ def native_change_property(
         raise AedtError(f"Target {target} does not expose ChangeProperty.")
     result = obj.ChangeProperty(change_payload)
     return {"target": target, "result": to_jsonable(result)}
+
+
+def materials_summary(manager: AedtSessionManager) -> dict[str, Any]:
+    materials = manager.target("materials")
+    summary: dict[str, Any] = {}
+    for attr in (
+        "material_keys",
+        "surface_material_keys",
+        "conductors",
+        "dielectrics",
+        "liquids",
+        "gases",
+    ):
+        if hasattr(materials, attr):
+            try:
+                summary[attr] = to_jsonable(getattr(materials, attr))
+            except Exception as exc:
+                summary[attr] = {"error": str(exc)}
+    if hasattr(materials, "get_used_project_material_names"):
+        try:
+            summary["used_project_material_names"] = to_jsonable(
+                materials.get_used_project_material_names()
+            )
+        except Exception as exc:
+            summary["used_project_material_names"] = {"error": str(exc)}
+    return summary
+
+
+def materials_operation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_attr_name(method)
+    if method not in MATERIAL_OPERATION_METHODS:
+        supported = ", ".join(sorted(MATERIAL_OPERATION_METHODS))
+        raise AedtError(f"Unsupported materials operation '{method}'. Supported: {supported}.")
+    materials = manager.target("materials")
+    if not hasattr(materials, method):
+        raise AedtError(f"Materials object does not expose {method}.")
+    result = getattr(materials, method)(*(args or []), **dict(kwargs or {}))
+    return {"method": method, "result": to_jsonable(result)}
+
+
+def configuration_summary(manager: AedtSessionManager) -> dict[str, Any]:
+    configurations = manager.target("configurations")
+    summary: dict[str, Any] = {
+        "type": f"{type(configurations).__module__}.{type(configurations).__name__}"
+    }
+    options = getattr(configurations, "options", None)
+    if options is not None:
+        option_values = {
+            key: value for key, value in vars(options).items() if not key.startswith("_")
+        }
+        summary["options"] = to_jsonable(option_values)
+    return summary
+
+
+def configuration_operation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_attr_name(method)
+    if method not in CONFIGURATION_OPERATION_METHODS:
+        supported = ", ".join(sorted(CONFIGURATION_OPERATION_METHODS))
+        raise AedtError(f"Unsupported configuration operation '{method}'. Supported: {supported}.")
+    configurations = manager.target("configurations")
+    if not hasattr(configurations, method):
+        raise AedtError(f"Configurations object does not expose {method}.")
+    result = getattr(configurations, method)(*(args or []), **dict(kwargs or {}))
+    return {"method": method, "result": to_jsonable(result)}
+
+
+def update_configuration_options(
+    manager: AedtSessionManager,
+    *,
+    options: Mapping[str, Any] | None = None,
+    action: str | None = None,
+) -> dict[str, Any]:
+    configurations = manager.target("configurations")
+    option_obj = getattr(configurations, "options", None)
+    if option_obj is None:
+        raise AedtError("Configurations object does not expose options.")
+    action_result: Any = None
+    if action:
+        validate_attr_name(action)
+        if action not in CONFIGURATION_OPTION_ACTIONS:
+            supported = ", ".join(sorted(CONFIGURATION_OPTION_ACTIONS))
+            raise AedtError(
+                f"Unsupported configuration option action '{action}'. Supported: {supported}."
+            )
+        if not hasattr(option_obj, action):
+            raise AedtError(f"Configuration options object does not expose {action}.")
+        action_result = getattr(option_obj, action)()
+    for key, value in dict(options or {}).items():
+        validate_attr_name(key)
+        if not hasattr(option_obj, key):
+            raise AedtError(f"Configuration options object does not expose {key}.")
+        setattr(option_obj, key, value)
+    option_values = {
+        key: value for key, value in vars(option_obj).items() if not key.startswith("_")
+    }
+    return {
+        "action": action,
+        "action_result": to_jsonable(action_result),
+        "options": to_jsonable(option_values),
+    }
 
 
 def assign_material(

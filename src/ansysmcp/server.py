@@ -16,6 +16,8 @@ from ansysmcp.operations import (
     change_validation_settings,
     circuit_operation,
     cleanup_solution,
+    configuration_operation,
+    configuration_summary,
     create_dataset,
     create_field_plot,
     create_frequency_sweep,
@@ -56,6 +58,8 @@ from ansysmcp.operations import (
     list_projects,
     list_variations,
     material_object_summary,
+    materials_operation,
+    materials_summary,
     maxwell_operation,
     mesh_operation,
     modeler_operation,
@@ -77,6 +81,7 @@ from ansysmcp.operations import (
     setup_summary,
     solve_in_batch,
     source_port_summary,
+    update_configuration_options,
     update_setup,
     validate_design,
 )
@@ -341,6 +346,24 @@ def aedt_assign_material(assignment: str | list[str], material: str) -> dict[str
     """Assign an AEDT material to one object or many objects."""
     with manager.locked():
         return assign_material(manager, assignment=assignment, material=material)
+
+
+@mcp.tool()
+def aedt_materials_summary() -> dict[str, Any]:
+    """Return project material keys, material classes, and used materials."""
+    with manager.locked():
+        return materials_summary(manager)
+
+
+@mcp.tool()
+def aedt_materials_operation(
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run an allowlisted materials library operation."""
+    with manager.locked():
+        return materials_operation(manager, method=method, args=args, kwargs=kwargs)
 
 
 @mcp.tool()
@@ -668,6 +691,40 @@ def aedt_project_design_operation(
     """Run an allowlisted project/design maintenance operation."""
     with manager.locked():
         return project_design_operation(manager, method=method, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_configuration_summary() -> dict[str, Any]:
+    """Return configuration object type and export/import option values."""
+    with manager.locked():
+        return configuration_summary(manager)
+
+
+@mcp.tool()
+def aedt_configuration_operation(
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run an allowlisted configuration import, export, or monitor update operation."""
+    with manager.locked():
+        return configuration_operation(manager, method=method, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_update_configuration_options(
+    options: dict[str, Any] | None = None,
+    action: Literal[
+        "set_all_export",
+        "set_all_import",
+        "unset_all_export",
+        "unset_all_import",
+    ]
+    | None = None,
+) -> dict[str, Any]:
+    """Set configuration export/import options or run an all-options action."""
+    with manager.locked():
+        return update_configuration_options(manager, options=options, action=action)
 
 
 @mcp.tool()
@@ -1244,6 +1301,8 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_modeler_summary",
             "aedt_modeler_operation",
             "aedt_assign_material",
+            "aedt_materials_summary",
+            "aedt_materials_operation",
             "aedt_material_object_summary",
             "aedt_assign_boundary_or_excitation",
             "aedt_hfss_operation",
@@ -1276,6 +1335,9 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_list_variations",
             "aedt_read_design_data",
             "aedt_project_design_operation",
+            "aedt_configuration_summary",
+            "aedt_configuration_operation",
+            "aedt_update_configuration_options",
             "aedt_get_nominal_variation",
             "aedt_get_evaluated_value",
             "aedt_get_output_variable",
