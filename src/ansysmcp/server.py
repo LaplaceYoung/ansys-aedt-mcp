@@ -35,6 +35,9 @@ from ansysmcp.operations import (
     list_api,
     list_projects,
     mesh_operation,
+    native_change_property,
+    native_get_properties,
+    native_get_property_value,
     native_module_call,
     new_project,
     run_app_method,
@@ -623,6 +626,60 @@ def aedt_native_module_call(
             method=method,
             args=args,
             kwargs=kwargs,
+        )
+
+
+@mcp.tool()
+def aedt_native_get_properties(
+    target: Literal["oproject", "odesign", "oeditor", "omodule"],
+    tab: str,
+    server: str,
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    """Get AEDT native property names from a target object."""
+    with manager.locked():
+        return native_get_properties(
+            manager,
+            target=target,
+            tab=tab,
+            server=server,
+            module_name=module_name,
+        )
+
+
+@mcp.tool()
+def aedt_native_get_property_value(
+    target: Literal["oproject", "odesign", "oeditor", "omodule"],
+    tab: str,
+    server: str,
+    property_name: str,
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    """Get an AEDT native property value from a target object."""
+    with manager.locked():
+        return native_get_property_value(
+            manager,
+            target=target,
+            tab=tab,
+            server=server,
+            property_name=property_name,
+            module_name=module_name,
+        )
+
+
+@mcp.tool()
+def aedt_native_change_property(
+    target: Literal["oproject", "odesign", "oeditor", "omodule"],
+    change_payload: list[Any],
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    """Apply an AEDT native ChangeProperty payload to a target object."""
+    with manager.locked():
+        return native_change_property(
+            manager,
+            target=target,
+            change_payload=change_payload,
+            module_name=module_name,
         )
 
 

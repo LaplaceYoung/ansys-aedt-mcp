@@ -656,6 +656,57 @@ def native_module_call(
     }
 
 
+def native_get_properties(
+    manager: AedtSessionManager,
+    *,
+    target: str,
+    tab: str,
+    server: str,
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    obj = manager.target(target, module_name=module_name)
+    if not hasattr(obj, "GetProperties"):
+        raise AedtError(f"Target {target} does not expose GetProperties.")
+    result = obj.GetProperties(tab, server)
+    return {"target": target, "tab": tab, "server": server, "properties": to_jsonable(result)}
+
+
+def native_get_property_value(
+    manager: AedtSessionManager,
+    *,
+    target: str,
+    tab: str,
+    server: str,
+    property_name: str,
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    obj = manager.target(target, module_name=module_name)
+    if not hasattr(obj, "GetPropertyValue"):
+        raise AedtError(f"Target {target} does not expose GetPropertyValue.")
+    result = obj.GetPropertyValue(tab, server, property_name)
+    return {
+        "target": target,
+        "tab": tab,
+        "server": server,
+        "property_name": property_name,
+        "value": to_jsonable(result),
+    }
+
+
+def native_change_property(
+    manager: AedtSessionManager,
+    *,
+    target: str,
+    change_payload: list[Any],
+    module_name: str | None = None,
+) -> dict[str, Any]:
+    obj = manager.target(target, module_name=module_name)
+    if not hasattr(obj, "ChangeProperty"):
+        raise AedtError(f"Target {target} does not expose ChangeProperty.")
+    result = obj.ChangeProperty(change_payload)
+    return {"target": target, "result": to_jsonable(result)}
+
+
 def assign_material(
     manager: AedtSessionManager,
     *,

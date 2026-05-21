@@ -25,6 +25,7 @@
 | Optimetrics | `aedt_create_parametric_sweep`, `aedt_create_optimization`, `aedt_call(target="parametrics")`, `aedt_call(target="optimizations")` | Parametric sweeps, optimization, sensitivity/statistical/DOE flows, and generic optimization bridge |
 | Reports | `aedt_create_output_variable`, `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data`, `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_app_data` | Output variables, report creation, field plots, data access, and exports |
 | Deletion | `aedt_delete_item` | Controlled deletion of setups, variables, projects, and designs |
+| Native properties | `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property` | AEDT `GetProperties`, `GetPropertyValue`, and `ChangeProperty` payload control |
 | Broad API/workflows | `aedt_list_api`, `aedt_call`, `aedt_batch_call`, `aedt_run_app_method` | Public PyAEDT/native AEDT method access and ordered multi-step execution |
 
 ## Native AEDT Bridge Targets
@@ -45,7 +46,7 @@
 ## Current Local Evidence
 
 - `uv sync --extra dev` succeeds with Python 3.12.10, `mcp 1.27.1`, and `pyaedt 0.27.1`.
-- MCP server currently registers 43 tools.
+- MCP server currently registers 46 tools.
 - `uv run pyaedt --json aedt-versions` detects AEDT `2024.2` at `G:\ANSYSEM2024\AnsysEM\v242\Win64`.
 - `aedt_start_session(app_name="desktop", version="2024.2", non_graphical=True)` launches and releases AEDT Desktop successfully.
 - `aedt_new_project(project_name="MCPNativeProject")` creates and lists a native AEDT project successfully.

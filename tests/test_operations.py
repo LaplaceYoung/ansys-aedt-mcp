@@ -23,6 +23,9 @@ from ansysmcp.operations import (
     list_api,
     list_projects,
     mesh_operation,
+    native_change_property,
+    native_get_properties,
+    native_get_property_value,
     native_module_call,
     new_project,
     set_active_design,
@@ -196,6 +199,15 @@ class DummyProject:
 
     def GetModule(self, module_name):
         return DummyModule(module_name)
+
+    def GetProperties(self, tab, server):
+        return [f"{tab}:{server}:Prop"]
+
+    def GetPropertyValue(self, tab, server, property_name):
+        return f"{tab}:{server}:{property_name}:Value"
+
+    def ChangeProperty(self, payload):
+        return {"changed": payload}
 
 
 class DummyModule:
@@ -466,3 +478,29 @@ def test_native_module_call_uses_get_module() -> None:
     result = native_module_call(manager, module_name="AnalysisSetup", method="GetSetups")
     assert result["module_name"] == "AnalysisSetup"
     assert result["result"] == ["Setup1"]
+
+
+def test_native_property_wrappers_use_property_api() -> None:
+    manager = desktop_manager()
+    new_project(manager, project_name="MCPNativeProject")
+    properties = native_get_properties(
+        manager,
+        target="oproject",
+        tab="ProjectVariableTab",
+        server="ProjectVariables",
+    )
+    value = native_get_property_value(
+        manager,
+        target="oproject",
+        tab="ProjectVariableTab",
+        server="ProjectVariables",
+        property_name="$w",
+    )
+    changed = native_change_property(
+        manager,
+        target="oproject",
+        change_payload=["NAME:AllTabs"],
+    )
+    assert properties["properties"] == ["ProjectVariableTab:ProjectVariables:Prop"]
+    assert value["value"] == "ProjectVariableTab:ProjectVariables:$w:Value"
+    assert changed["result"] == {"changed": ["NAME:AllTabs"]}
