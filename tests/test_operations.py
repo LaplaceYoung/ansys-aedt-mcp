@@ -6,6 +6,7 @@ from ansysmcp.operations import (
     assign_boundary_or_excitation,
     assign_material,
     batch_call,
+    circuit_operation,
     create_dataset,
     create_field_plot,
     create_frequency_sweep,
@@ -17,10 +18,14 @@ from ansysmcp.operations import (
     design_summary,
     export_app_data,
     export_diagnostics,
+    export_icepak_summary,
+    export_matrix_data,
     get_monitor_data,
     get_setup_properties,
     get_touchstone_data,
     get_traces_for_plot,
+    hfss_operation,
+    icepak_operation,
     import_cad,
     import_dataset,
     insert_design,
@@ -28,12 +33,14 @@ from ansysmcp.operations import (
     invoke,
     list_api,
     list_projects,
+    maxwell_operation,
     mesh_operation,
     native_change_property,
     native_get_properties,
     native_get_property_value,
     native_module_call,
     new_project,
+    q3d_operation,
     set_active_design,
     set_active_project,
     set_variable,
@@ -196,6 +203,36 @@ class DummyApp:
 
     def export_convergence(self, setup, variations="", output_file=None):
         return {"setup": setup, "variations": variations, "output_file": output_file}
+
+    def create_scattering(self, plot="S Parameter Plot Nominal", ports=None):
+        return {"plot": plot, "ports": ports}
+
+    def assign_winding(self, assignment=None, name=None, current=1):
+        return {"assignment": assignment, "name": name, "current": current}
+
+    def assign_net(self, assignment, net_name=None, net_type="Signal"):
+        return {"assignment": assignment, "net_name": net_name, "net_type": net_type}
+
+    def assign_source(self, assignment, thermal_condition, assignment_value):
+        return {
+            "assignment": assignment,
+            "thermal_condition": thermal_condition,
+            "assignment_value": assignment_value,
+        }
+
+    def create_schematic_from_netlist(self, input_file):
+        return {"input_file": input_file}
+
+    def export_matrix_data(self, file_name, setup=None):
+        return {"file_name": file_name, "setup": setup}
+
+    def export_summary(self, output_dir=None, solution_name=None, type="Object", **kwargs):
+        return {
+            "output_dir": output_dir,
+            "solution_name": solution_name,
+            "type": type,
+            **kwargs,
+        }
 
     def create_open_region(self, frequency="1GHz", boundary="Radiation", **kwargs):
         return {"frequency": frequency, "boundary": boundary, **kwargs}
@@ -560,6 +597,62 @@ def test_export_diagnostics_uses_allowlisted_methods() -> None:
     )
     assert result["method"] == "export_convergence"
     assert result["result"]["output_file"] == "convergence.csv"
+
+
+def test_solver_specific_operation_wrappers_dispatch_allowlisted_methods() -> None:
+    manager = active_manager()
+    hfss = hfss_operation(
+        manager,
+        method="create_scattering",
+        kwargs={"plot": "S11", "ports": ["P1"]},
+    )
+    maxwell = maxwell_operation(
+        manager,
+        method="assign_winding",
+        kwargs={"assignment": ["Coil1"], "name": "Winding1", "current": 2},
+    )
+    q3d = q3d_operation(
+        manager,
+        method="assign_net",
+        args=[["Face1"]],
+        kwargs={"net_name": "Net1"},
+    )
+    icepak = icepak_operation(
+        manager,
+        method="assign_source",
+        args=["Block1", "Total Power", "3W"],
+    )
+    circuit = circuit_operation(
+        manager,
+        method="create_schematic_from_netlist",
+        args=["design.net"],
+    )
+    assert hfss["result"]["ports"] == ["P1"]
+    assert maxwell["result"]["name"] == "Winding1"
+    assert q3d["result"]["net_name"] == "Net1"
+    assert icepak["result"]["assignment_value"] == "3W"
+    assert circuit["result"]["input_file"] == "design.net"
+
+
+def test_matrix_and_icepak_summary_exports_dispatch_to_app() -> None:
+    manager = active_manager()
+    matrix = export_matrix_data(
+        manager,
+        export_kind="q3d",
+        args=["matrix.csv"],
+        kwargs={"setup": "Setup1"},
+    )
+    summary = export_icepak_summary(
+        manager,
+        output_dir="out",
+        solution_name="Setup1",
+        quantity="Temperature",
+        filename="summary.csv",
+    )
+    assert matrix["method"] == "export_matrix_data"
+    assert matrix["result"]["file_name"] == "matrix.csv"
+    assert summary["method"] == "export_summary"
+    assert summary["result"]["filename"] == "summary.csv"
 
 
 def test_native_module_call_uses_get_module() -> None:

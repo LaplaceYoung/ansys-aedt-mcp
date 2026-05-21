@@ -9,6 +9,7 @@
   - `ReportSetup`
   - `Optimetrics`
   - `FieldsReporter`
+- Expand solver-specific allowlists for AEDT actions that PyAEDT exposes across HFSS, Maxwell, Q3D, Icepak, and Circuit.
 - Add sample MCP prompts for geometry creation, parametric sweeps, and report export.
 - Generate a machine-readable API map from installed PyAEDT classes.
 

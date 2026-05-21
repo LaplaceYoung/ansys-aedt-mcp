@@ -46,6 +46,145 @@ DIAGNOSTIC_EXPORT_METHODS = {
     "mesh_stats": "export_mesh_stats",
     "profile": "export_profile",
 }
+HFSS_OPERATION_METHODS = {
+    "assign_current_source_to_sheet",
+    "assign_febi",
+    "assign_finite_conductivity",
+    "assign_hybrid_region",
+    "assign_impedance_to_sheet",
+    "assign_layered_impedance",
+    "assign_lumped_rlc_to_sheet",
+    "assign_perfect_e",
+    "assign_perfect_h",
+    "assign_primary",
+    "assign_radiation_boundary_to_faces",
+    "assign_radiation_boundary_to_objects",
+    "assign_secondary",
+    "assign_symmetry",
+    "assign_voltage_source_to_sheet",
+    "auto_assign_lattice_pairs",
+    "create_boundary",
+    "create_current_source_from_objects",
+    "create_impedance_between_objects",
+    "create_lumped_rlc_between_objects",
+    "create_perfecte_from_objects",
+    "create_perfecth_from_objects",
+    "create_scattering",
+    "create_source_excitation",
+    "create_voltage_source_from_objects",
+    "edit_sources",
+    "set_source_context",
+}
+MAXWELL_OPERATION_METHODS = {
+    "add_winding_coils",
+    "assign_coil",
+    "assign_current",
+    "assign_current_density",
+    "assign_current_density_terminal",
+    "assign_floating",
+    "assign_flux_tangential",
+    "assign_force",
+    "assign_impedance",
+    "assign_insulating",
+    "assign_layout_force",
+    "assign_master_slave",
+    "assign_matrix",
+    "assign_radiation",
+    "assign_resistive_sheet",
+    "assign_rotate_motion",
+    "assign_sink",
+    "assign_symmetry",
+    "assign_tangential_h_field",
+    "assign_torque",
+    "assign_translate_motion",
+    "assign_voltage",
+    "assign_voltage_drop",
+    "assign_winding",
+    "assign_zero_tangential_h_field",
+    "create_external_circuit",
+    "order_coil_terminals",
+    "set_core_losses",
+    "set_source_context",
+    "solve_inside",
+}
+Q3D_OPERATION_METHODS = {
+    "assign_net",
+    "assign_thin_conductor",
+    "edit_sources",
+    "insert_reduced_matrix",
+    "net_sources",
+    "set_source_context",
+    "source",
+    "sources",
+}
+ICEPAK_OPERATION_METHODS = {
+    "assign_2way_coupling",
+    "assign_adiabatic_plate",
+    "assign_blower_type1",
+    "assign_blower_type2",
+    "assign_conducting_plate",
+    "assign_conducting_plate_with_conductance",
+    "assign_conducting_plate_with_impedance",
+    "assign_conducting_plate_with_resistance",
+    "assign_conducting_plate_with_thickness",
+    "assign_device_resistance",
+    "assign_em_losses",
+    "assign_free_opening",
+    "assign_grille",
+    "assign_hollow_block",
+    "assign_loss_curve_resistance",
+    "assign_mass_flow_free_opening",
+    "assign_openings",
+    "assign_point_monitor",
+    "assign_point_monitor_in_object",
+    "assign_power_law_resistance",
+    "assign_pressure_free_opening",
+    "assign_recirculation_opening",
+    "assign_resistance",
+    "assign_solid_block",
+    "assign_source",
+    "assign_stationary_wall",
+    "assign_stationary_wall_with_heat_flux",
+    "assign_stationary_wall_with_htc",
+    "assign_stationary_wall_with_temperature",
+    "assign_surface_material",
+    "assign_surface_monitor",
+    "assign_symmetry_wall",
+    "assign_velocity_free_opening",
+    "create_fan",
+    "create_network_object",
+    "create_parametric_heatsink_on_face",
+    "create_source_blocks_from_list",
+    "create_two_resistor_network_block",
+    "generate_fluent_mesh",
+    "globalMeshSettings",
+    "set_source_context",
+}
+CIRCUIT_OPERATION_METHODS = {
+    "assign_current_sinusoidal_excitation_to_ports",
+    "assign_power_sinusoidal_excitation_to_ports",
+    "assign_voltage_frequency_dependent_excitation_to_ports",
+    "assign_voltage_sinusoidal_excitation_to_ports",
+    "create_ami_schematic_from_snp",
+    "create_ibis_schematic_from_pins",
+    "create_ibis_schematic_from_snp",
+    "create_lna_schematic_from_snp",
+    "create_schematic_from_asc_file",
+    "create_schematic_from_mentor_netlist",
+    "create_schematic_from_netlist",
+    "create_source",
+    "create_tdr_schematic_from_snp",
+    "create_touchstone_report",
+    "export_fullwave_spice",
+}
+MATRIX_EXPORT_METHODS = {
+    "maxwell": "export_matrix",
+    "maxwell_matrix": "export_matrix",
+    "q3d": "export_matrix_data",
+    "q3d_matrix": "export_matrix_data",
+    "equivalent_circuit": "export_equivalent_circuit",
+    "q3d_equivalent_circuit": "export_equivalent_circuit",
+}
 NEAR_FIELD_METHODS = {
     "box": "insert_near_field_box",
     "line": "insert_near_field_line",
@@ -552,6 +691,113 @@ def assign_boundary_or_excitation(
     return {"method": method, "result": to_jsonable(result)}
 
 
+def solver_operation(
+    manager: AedtSessionManager,
+    *,
+    solver: str,
+    method: str,
+    allowed_methods: set[str],
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_attr_name(method)
+    if method not in allowed_methods:
+        supported = ", ".join(sorted(allowed_methods))
+        raise AedtError(
+            f"Unsupported {solver} operation '{method}'. Supported methods: {supported}."
+        )
+    app = manager.app
+    if not hasattr(app, method):
+        raise AedtError(f"Active app does not expose {method}.")
+    result = getattr(app, method)(*(args or []), **dict(kwargs or {}))
+    return {"solver": solver, "method": method, "result": to_jsonable(result)}
+
+
+def hfss_operation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    return solver_operation(
+        manager,
+        solver="hfss",
+        method=method,
+        allowed_methods=HFSS_OPERATION_METHODS,
+        args=args,
+        kwargs=kwargs,
+    )
+
+
+def maxwell_operation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    return solver_operation(
+        manager,
+        solver="maxwell",
+        method=method,
+        allowed_methods=MAXWELL_OPERATION_METHODS,
+        args=args,
+        kwargs=kwargs,
+    )
+
+
+def q3d_operation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    return solver_operation(
+        manager,
+        solver="q3d",
+        method=method,
+        allowed_methods=Q3D_OPERATION_METHODS,
+        args=args,
+        kwargs=kwargs,
+    )
+
+
+def icepak_operation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    return solver_operation(
+        manager,
+        solver="icepak",
+        method=method,
+        allowed_methods=ICEPAK_OPERATION_METHODS,
+        args=args,
+        kwargs=kwargs,
+    )
+
+
+def circuit_operation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    return solver_operation(
+        manager,
+        solver="circuit",
+        method=method,
+        allowed_methods=CIRCUIT_OPERATION_METHODS,
+        args=args,
+        kwargs=kwargs,
+    )
+
+
 def create_port(
     manager: AedtSessionManager,
     *,
@@ -636,6 +882,56 @@ def export_diagnostics(
         positional_fallback=[setup],
     )
     return {"export_kind": normalized, "method": method_name, "result": to_jsonable(result)}
+
+
+def export_matrix_data(
+    manager: AedtSessionManager,
+    *,
+    export_kind: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    normalized = export_kind.lower().replace("-", "_").replace(" ", "_")
+    method_name = MATRIX_EXPORT_METHODS.get(normalized)
+    if method_name is None:
+        supported = ", ".join(sorted(MATRIX_EXPORT_METHODS))
+        raise AedtError(f"Unsupported matrix export '{export_kind}'. Supported: {supported}.")
+    if not hasattr(app, method_name):
+        raise AedtError(f"Active app does not expose {method_name}.")
+    result = getattr(app, method_name)(*(args or []), **dict(kwargs or {}))
+    return {"export_kind": normalized, "method": method_name, "result": to_jsonable(result)}
+
+
+def export_icepak_summary(
+    manager: AedtSessionManager,
+    *,
+    output_dir: str | None = None,
+    solution_name: str | None = None,
+    summary_type: str = "Object",
+    geometry_type: str = "Volume",
+    quantity: str = "Temperature",
+    variation: str = "",
+    variation_list: list[Any] | None = None,
+    filename: str = "IPKsummaryReport",
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "export_summary"):
+        raise AedtError("Active app does not expose export_summary.")
+    result = call_with_supported_kwargs(
+        app.export_summary,
+        {
+            "output_dir": output_dir,
+            "solution_name": solution_name,
+            "type": summary_type,
+            "geometry_type": geometry_type,
+            "quantity": quantity,
+            "variation": variation,
+            "variation_list": variation_list,
+            "filename": filename,
+        },
+    )
+    return {"method": "export_summary", "result": to_jsonable(result)}
 
 
 def create_open_region(

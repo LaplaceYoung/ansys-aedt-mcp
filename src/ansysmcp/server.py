@@ -10,6 +10,7 @@ from ansysmcp.operations import (
     assign_boundary_or_excitation,
     assign_material,
     batch_call,
+    circuit_operation,
     create_dataset,
     create_field_plot,
     create_frequency_sweep,
@@ -26,6 +27,8 @@ from ansysmcp.operations import (
     export_app_data,
     export_diagnostics,
     export_field_plot,
+    export_icepak_summary,
+    export_matrix_data,
     export_report,
     get_monitor_data,
     get_setup_properties,
@@ -33,6 +36,8 @@ from ansysmcp.operations import (
     get_touchstone_data,
     get_traces_for_plot,
     get_variables,
+    hfss_operation,
+    icepak_operation,
     import_cad,
     import_dataset,
     insert_design,
@@ -40,12 +45,14 @@ from ansysmcp.operations import (
     invoke,
     list_api,
     list_projects,
+    maxwell_operation,
     mesh_operation,
     native_change_property,
     native_get_properties,
     native_get_property_value,
     native_module_call,
     new_project,
+    q3d_operation,
     run_app_method,
     set_active_design,
     set_active_project,
@@ -308,6 +315,61 @@ def aedt_assign_boundary_or_excitation(
     """Call a public assign_/create_ boundary or excitation method on the active PyAEDT app."""
     with manager.locked():
         return assign_boundary_or_excitation(manager, method=method, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_hfss_operation(
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run an allowlisted HFSS boundary, excitation, RLC, scattering, or source operation."""
+    with manager.locked():
+        return hfss_operation(manager, method=method, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_maxwell_operation(
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run an allowlisted Maxwell coil, winding, motion, force, torque, or source operation."""
+    with manager.locked():
+        return maxwell_operation(manager, method=method, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_q3d_operation(
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run an allowlisted Q3D/Q2D net, source, sink, thin conductor, or matrix operation."""
+    with manager.locked():
+        return q3d_operation(manager, method=method, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_icepak_operation(
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run an allowlisted Icepak thermal source, opening, wall, monitor, fan, or mesh operation."""
+    with manager.locked():
+        return icepak_operation(manager, method=method, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_circuit_operation(
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run an allowlisted Circuit schematic, source, Touchstone, or excitation operation."""
+    with manager.locked():
+        return circuit_operation(manager, method=method, args=args, kwargs=kwargs)
 
 
 @mcp.tool()
@@ -674,6 +736,50 @@ def aedt_export_diagnostics(
 
 
 @mcp.tool()
+def aedt_export_matrix_data(
+    export_kind: Literal[
+        "maxwell",
+        "maxwell_matrix",
+        "q3d",
+        "q3d_matrix",
+        "equivalent_circuit",
+        "q3d_equivalent_circuit",
+    ],
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Export Maxwell/Q3D matrices or Q3D equivalent circuits."""
+    with manager.locked():
+        return export_matrix_data(manager, export_kind=export_kind, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_export_icepak_summary(
+    output_dir: str | None = None,
+    solution_name: str | None = None,
+    summary_type: str = "Object",
+    geometry_type: str = "Volume",
+    quantity: str = "Temperature",
+    variation: str = "",
+    variation_list: list[Any] | None = None,
+    filename: str = "IPKsummaryReport",
+) -> dict[str, Any]:
+    """Export an Icepak summary report for objects, faces, or monitor-style quantities."""
+    with manager.locked():
+        return export_icepak_summary(
+            manager,
+            output_dir=output_dir,
+            solution_name=solution_name,
+            summary_type=summary_type,
+            geometry_type=geometry_type,
+            quantity=quantity,
+            variation=variation,
+            variation_list=variation_list,
+            filename=filename,
+        )
+
+
+@mcp.tool()
 def aedt_export_app_data(
     export_kind: Literal[
         "3d_model",
@@ -896,6 +1002,11 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_create_geometry",
             "aedt_assign_material",
             "aedt_assign_boundary_or_excitation",
+            "aedt_hfss_operation",
+            "aedt_maxwell_operation",
+            "aedt_q3d_operation",
+            "aedt_icepak_operation",
+            "aedt_circuit_operation",
             "aedt_create_port",
             "aedt_source_port_summary",
             "aedt_mesh_operation",
@@ -921,6 +1032,8 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_export_report",
             "aedt_export_field_plot",
             "aedt_export_diagnostics",
+            "aedt_export_matrix_data",
+            "aedt_export_icepak_summary",
             "aedt_export_app_data",
             "aedt_native_module_call",
             "aedt_native_get_properties",
