@@ -29,8 +29,10 @@ from ansysmcp.operations import (
     create_port,
     create_report,
     create_setup,
+    create_touchstone_report,
     delete_item,
     design_summary,
+    edit_design_notes,
     export_app_data,
     export_diagnostics,
     export_field_plot,
@@ -55,6 +57,7 @@ from ansysmcp.operations import (
     icepak_operation,
     import_cad,
     import_dataset,
+    import_touchstone_solution,
     insert_design,
     insert_far_field,
     insert_near_field,
@@ -92,8 +95,12 @@ from ansysmcp.operations import (
     run_app_method,
     set_active_design,
     set_active_project,
+    set_hpc_options,
+    set_license_type,
+    set_temporary_directory,
     set_variable,
     setup_summary,
+    signal_integrity_expressions,
     solve_in_batch,
     source_port_summary,
     update_configuration_options,
@@ -688,6 +695,53 @@ def aedt_change_validation_settings(
 
 
 @mcp.tool()
+def aedt_edit_design_notes(text: str) -> dict[str, Any]:
+    """Replace the active design notes text when the active app supports edit_notes."""
+    with manager.locked():
+        return edit_design_notes(manager, text=text)
+
+
+@mcp.tool()
+def aedt_set_hpc_options(
+    cores: int | None = None,
+    gpus: int | None = None,
+    tasks: int | None = None,
+    num_variations_to_distribute: int | None = None,
+    allowed_distribution_types: list[Any] | None = None,
+    use_auto_settings: bool = True,
+    acf_file: str | None = None,
+    configuration_name: str | None = None,
+) -> dict[str, Any]:
+    """Apply custom HPC options or load an HPC configuration from an ACF file."""
+    with manager.locked():
+        return set_hpc_options(
+            manager,
+            cores=cores,
+            gpus=gpus,
+            tasks=tasks,
+            num_variations_to_distribute=num_variations_to_distribute,
+            allowed_distribution_types=allowed_distribution_types,
+            use_auto_settings=use_auto_settings,
+            acf_file=acf_file,
+            configuration_name=configuration_name,
+        )
+
+
+@mcp.tool()
+def aedt_set_license_type(license_type: str = "Pool") -> dict[str, Any]:
+    """Set the active PyAEDT license type when supported by the active app."""
+    with manager.locked():
+        return set_license_type(manager, license_type=license_type)
+
+
+@mcp.tool()
+def aedt_set_temporary_directory(path: str) -> dict[str, Any]:
+    """Set the active PyAEDT temporary directory for generated files."""
+    with manager.locked():
+        return set_temporary_directory(manager, path=path)
+
+
+@mcp.tool()
 def aedt_list_variations(
     setup: str | None = None,
     sweep: str | None = None,
@@ -1015,6 +1069,32 @@ def aedt_get_touchstone_data(
 
 
 @mcp.tool()
+def aedt_signal_integrity_expressions(
+    drivers: list[Any] | None = None,
+    receivers: list[Any] | None = None,
+    excitations: list[Any] | None = None,
+    drivers_prefix_name: str = "",
+    receivers_prefix_name: str = "",
+    excitation_name_prefix: str = "",
+    math_formula: str = "",
+    nets: list[Any] | None = None,
+) -> dict[str, Any]:
+    """Return return-loss, insertion-loss, NEXT, and FEXT expression lists when supported."""
+    with manager.locked():
+        return signal_integrity_expressions(
+            manager,
+            drivers=drivers,
+            receivers=receivers,
+            excitations=excitations,
+            drivers_prefix_name=drivers_prefix_name,
+            receivers_prefix_name=receivers_prefix_name,
+            excitation_name_prefix=excitation_name_prefix,
+            math_formula=math_formula,
+            nets=nets,
+        )
+
+
+@mcp.tool()
 def aedt_get_monitor_data() -> dict[str, Any]:
     """Return monitor data from solvers that expose get_monitor_data."""
     with manager.locked():
@@ -1171,6 +1251,38 @@ def aedt_export_touchstone_data(
             renormalization=renormalization,
             impedance=impedance,
             kwargs=kwargs,
+        )
+
+
+@mcp.tool()
+def aedt_import_touchstone_solution(
+    input_file: str,
+    solution: str = "Imported_Data",
+) -> dict[str, Any]:
+    """Import a Touchstone solution into a Circuit-style design when supported."""
+    with manager.locked():
+        return import_touchstone_solution(manager, input_file=input_file, solution=solution)
+
+
+@mcp.tool()
+def aedt_create_touchstone_report(
+    name: str,
+    curves: list[Any],
+    solution: str | None = None,
+    variations: dict[str, Any] | None = None,
+    differential_pairs: bool = False,
+    subdesign_id: int | None = None,
+) -> dict[str, Any]:
+    """Create a Touchstone report from imported or solved Touchstone curves."""
+    with manager.locked():
+        return create_touchstone_report(
+            manager,
+            name=name,
+            curves=curves,
+            solution=solution,
+            variations=variations,
+            differential_pairs=differential_pairs,
+            subdesign_id=subdesign_id,
         )
 
 
@@ -1586,6 +1698,10 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_cleanup_solution",
             "aedt_change_design_settings",
             "aedt_change_validation_settings",
+            "aedt_edit_design_notes",
+            "aedt_set_hpc_options",
+            "aedt_set_license_type",
+            "aedt_set_temporary_directory",
             "aedt_list_variations",
             "aedt_read_design_data",
             "aedt_project_design_operation",
@@ -1601,6 +1717,7 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_get_solution_data",
             "aedt_get_traces_for_plot",
             "aedt_get_touchstone_data",
+            "aedt_signal_integrity_expressions",
             "aedt_get_monitor_data",
             "aedt_insert_far_field",
             "aedt_get_antenna_data",
@@ -1612,6 +1729,8 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_insert_near_field",
             "aedt_export_report",
             "aedt_export_touchstone_data",
+            "aedt_import_touchstone_solution",
+            "aedt_create_touchstone_report",
             "aedt_export_field_plot",
             "aedt_export_diagnostics",
             "aedt_export_matrix_data",

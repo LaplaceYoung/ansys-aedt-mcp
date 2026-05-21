@@ -863,6 +863,134 @@ def change_validation_settings(
     return {"result": to_jsonable(result)}
 
 
+def edit_design_notes(
+    manager: AedtSessionManager,
+    *,
+    text: str,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "edit_notes"):
+        raise AedtError("Active app does not expose edit_notes.")
+    return {"result": to_jsonable(app.edit_notes(text))}
+
+
+def set_hpc_options(
+    manager: AedtSessionManager,
+    *,
+    cores: int | None = None,
+    gpus: int | None = None,
+    tasks: int | None = None,
+    num_variations_to_distribute: int | None = None,
+    allowed_distribution_types: list[Any] | None = None,
+    use_auto_settings: bool = True,
+    acf_file: str | None = None,
+    configuration_name: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if acf_file:
+        if not hasattr(app, "set_hpc_from_file"):
+            raise AedtError("Active app does not expose set_hpc_from_file.")
+        result = call_with_supported_kwargs(
+            app.set_hpc_from_file,
+            {"acf_file": acf_file, "configuration_name": configuration_name},
+        )
+        return {"method": "set_hpc_from_file", "result": to_jsonable(result)}
+    if not hasattr(app, "set_custom_hpc_options"):
+        raise AedtError("Active app does not expose set_custom_hpc_options.")
+    result = call_with_supported_kwargs(
+        app.set_custom_hpc_options,
+        {
+            "cores": cores,
+            "gpus": gpus,
+            "tasks": tasks,
+            "num_variations_to_distribute": num_variations_to_distribute,
+            "allowed_distribution_types": allowed_distribution_types,
+            "use_auto_settings": use_auto_settings,
+        },
+    )
+    return {"method": "set_custom_hpc_options", "result": to_jsonable(result)}
+
+
+def set_license_type(
+    manager: AedtSessionManager,
+    *,
+    license_type: str = "Pool",
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "set_license_type"):
+        raise AedtError("Active app does not expose set_license_type.")
+    result = call_with_supported_kwargs(app.set_license_type, {"license_type": license_type})
+    return {"result": to_jsonable(result)}
+
+
+def set_temporary_directory(
+    manager: AedtSessionManager,
+    *,
+    path: str,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "set_temporary_directory"):
+        raise AedtError("Active app does not expose set_temporary_directory.")
+    result = call_with_supported_kwargs(app.set_temporary_directory, {"path": path})
+    return {"result": to_jsonable(result)}
+
+
+def signal_integrity_expressions(
+    manager: AedtSessionManager,
+    *,
+    drivers: list[Any] | None = None,
+    receivers: list[Any] | None = None,
+    excitations: list[Any] | None = None,
+    drivers_prefix_name: str = "",
+    receivers_prefix_name: str = "",
+    excitation_name_prefix: str = "",
+    math_formula: str = "",
+    nets: list[Any] | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    result: dict[str, Any] = {}
+    method_kwargs: dict[str, dict[str, Any]] = {
+        "get_all_return_loss_list": {
+            "excitations": excitations,
+            "excitation_name_prefix": excitation_name_prefix,
+            "math_formula": math_formula,
+            "nets": nets,
+        },
+        "get_all_insertion_loss_list": {
+            "drivers": drivers,
+            "receivers": receivers,
+            "drivers_prefix_name": drivers_prefix_name,
+            "receivers_prefix_name": receivers_prefix_name,
+            "math_formula": math_formula,
+            "nets": nets,
+        },
+        "get_next_xtalk_list": {
+            "drivers": drivers,
+            "drivers_prefix_name": drivers_prefix_name,
+            "math_formula": math_formula,
+            "nets": nets,
+        },
+        "get_fext_xtalk_list": {
+            "drivers": drivers,
+            "receivers": receivers,
+            "drivers_prefix_name": drivers_prefix_name,
+            "receivers_prefix_name": receivers_prefix_name,
+            "math_formula": math_formula,
+            "nets": nets,
+        },
+    }
+    for method_name, kwargs in method_kwargs.items():
+        method = getattr(app, method_name, None)
+        if callable(method):
+            try:
+                result[method_name] = to_jsonable(call_with_supported_kwargs(method, kwargs))
+            except Exception as exc:
+                result[method_name] = {"error": str(exc)}
+    if not result:
+        raise AedtError("Active app does not expose signal-integrity expression helpers.")
+    return result
+
+
 def list_variations(
     manager: AedtSessionManager,
     *,
@@ -1763,6 +1891,51 @@ def export_touchstone_data(
     }
     result = call_with_supported_kwargs(app.export_touchstone, export_kwargs)
     return {"method": "export_touchstone", "result": to_jsonable(result)}
+
+
+def import_touchstone_solution(
+    manager: AedtSessionManager,
+    *,
+    input_file: str,
+    solution: str = "Imported_Data",
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "import_touchstone_solution"):
+        raise AedtError("Active app does not expose import_touchstone_solution.")
+    result = call_with_supported_kwargs(
+        app.import_touchstone_solution,
+        {"input_file": input_file, "solution": solution},
+        positional_fallback=[input_file],
+    )
+    return {"method": "import_touchstone_solution", "result": to_jsonable(result)}
+
+
+def create_touchstone_report(
+    manager: AedtSessionManager,
+    *,
+    name: str,
+    curves: list[Any],
+    solution: str | None = None,
+    variations: Mapping[str, Any] | None = None,
+    differential_pairs: bool = False,
+    subdesign_id: int | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "create_touchstone_report"):
+        raise AedtError("Active app does not expose create_touchstone_report.")
+    result = call_with_supported_kwargs(
+        app.create_touchstone_report,
+        {
+            "name": name,
+            "curves": curves,
+            "solution": solution,
+            "variations": variations,
+            "differential_pairs": differential_pairs,
+            "subdesign_id": subdesign_id,
+        },
+        positional_fallback=[name, curves],
+    )
+    return {"method": "create_touchstone_report", "result": to_jsonable(result)}
 
 
 def post_summary(manager: AedtSessionManager) -> dict[str, Any]:

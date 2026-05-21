@@ -5,6 +5,7 @@ These workflows show practical MCP call sequences for common AEDT automation tas
 ## Workflows
 
 - [HFSS S-parameter workflow](workflows/hfss-sparameter-workflow.md)
+- [Circuit Touchstone workflow](workflows/circuit-touchstone-workflow.md)
 - [Q3D net workflow](workflows/q3d-net-workflow.md)
 - [Icepak thermal workflow](workflows/icepak-thermal-workflow.md)
 - [Desktop/native AEDT workflow](workflows/native-desktop-workflow.md)

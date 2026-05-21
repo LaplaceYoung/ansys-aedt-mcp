@@ -4,6 +4,7 @@
 
 - Add verified examples for Desktop/native workflows.
 - Add reusable solve-control examples for distributed setup solves, batch solves, solved variations, and profile reads.
+- Add reusable runtime-control examples for HPC configurations, license mode, and temporary directories.
 - Add project/design maintenance examples for validation, variation listing, settings updates, and design duplication.
 - Add focused wrappers for common native modules:
   - `AnalysisSetup`
@@ -21,7 +22,7 @@
 - Maxwell 3D: geometry, coils, excitations, solve setup, loss reports.
 - Q3D/Q2D: nets, sources/sinks, object inspection, matrix extraction, capacitance/inductance exports.
 - Icepak: thermal setup, power maps, monitor points, monitor data, fan operating points, and temperature reports.
-- Circuit: schematic components, Nexxim setup, S-parameter export.
+- Circuit: schematic components, Nexxim setup, Touchstone import/reporting, signal-integrity expression lists, and S-parameter export.
 
 ## Release Quality
 

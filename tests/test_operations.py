@@ -21,8 +21,10 @@ from ansysmcp.operations import (
     create_optimization,
     create_output_variable,
     create_port,
+    create_touchstone_report,
     delete_item,
     design_summary,
+    edit_design_notes,
     export_app_data,
     export_diagnostics,
     export_icepak_summary,
@@ -43,6 +45,7 @@ from ansysmcp.operations import (
     icepak_operation,
     import_cad,
     import_dataset,
+    import_touchstone_solution,
     insert_design,
     insert_far_field,
     insert_near_field,
@@ -79,8 +82,12 @@ from ansysmcp.operations import (
     read_design_data,
     set_active_design,
     set_active_project,
+    set_hpc_options,
+    set_license_type,
+    set_temporary_directory,
     set_variable,
     setup_summary,
+    signal_integrity_expressions,
     solve_in_batch,
     source_port_summary,
     update_configuration_options,
@@ -386,6 +393,36 @@ class DummyApp:
             "skip_intersections": skip_intersections,
         }
 
+    def edit_notes(self, text):
+        return {"notes": text}
+
+    def set_custom_hpc_options(
+        self,
+        cores=None,
+        gpus=None,
+        tasks=None,
+        num_variations_to_distribute=None,
+        allowed_distribution_types=None,
+        use_auto_settings=True,
+    ):
+        return {
+            "cores": cores,
+            "gpus": gpus,
+            "tasks": tasks,
+            "num_variations_to_distribute": num_variations_to_distribute,
+            "allowed_distribution_types": allowed_distribution_types,
+            "use_auto_settings": use_auto_settings,
+        }
+
+    def set_hpc_from_file(self, acf_file=None, configuration_name=None):
+        return {"acf_file": acf_file, "configuration_name": configuration_name}
+
+    def set_license_type(self, license_type="Pool"):
+        return {"license_type": license_type}
+
+    def set_temporary_directory(self, path):
+        return {"path": path}
+
     def list_of_variations(self, setup=None, sweep=None):
         return [f"{setup}:{sweep}:w='10mm'"]
 
@@ -620,6 +657,70 @@ class DummyApp:
             "renormalization": renormalization,
             "impedance": impedance,
         }
+
+    def import_touchstone_solution(self, input_file, solution="Imported_Data"):
+        return {"input_file": input_file, "solution": solution}
+
+    def create_touchstone_report(
+        self,
+        name,
+        curves,
+        solution=None,
+        variations=None,
+        differential_pairs=False,
+        subdesign_id=None,
+    ):
+        return {
+            "name": name,
+            "curves": curves,
+            "solution": solution,
+            "variations": variations,
+            "differential_pairs": differential_pairs,
+            "subdesign_id": subdesign_id,
+        }
+
+    def get_all_return_loss_list(
+        self,
+        excitations=None,
+        excitation_name_prefix="",
+        math_formula="",
+        nets=None,
+    ):
+        return [
+            f"{math_formula}ReturnLoss("
+            f"{excitations or ['P1']},{nets or []},{excitation_name_prefix})"
+        ]
+
+    def get_all_insertion_loss_list(
+        self,
+        drivers=None,
+        receivers=None,
+        drivers_prefix_name="",
+        receivers_prefix_name="",
+        math_formula="",
+        nets=None,
+    ):
+        return [
+            f"{math_formula}InsertionLoss({drivers or ['P1']},{receivers or ['P2']},{nets or []},"
+            f"{drivers_prefix_name},{receivers_prefix_name})"
+        ]
+
+    def get_next_xtalk_list(self, drivers=None, drivers_prefix_name="", math_formula="", nets=None):
+        return [f"{math_formula}NEXT({drivers or ['P1']},{nets or []},{drivers_prefix_name})"]
+
+    def get_fext_xtalk_list(
+        self,
+        drivers=None,
+        receivers=None,
+        drivers_prefix_name="",
+        receivers_prefix_name="",
+        math_formula="",
+        nets=None,
+    ):
+        return [
+            f"{math_formula}FEXT({drivers or ['P1']},{receivers or ['P2']},{nets or []},"
+            f"{drivers_prefix_name},{receivers_prefix_name})"
+        ]
 
     def insert_near_field_sphere(self, name, **kwargs):
         return {"name": name, **kwargs}
@@ -1037,6 +1138,22 @@ def test_design_validation_and_settings_wrappers_dispatch_to_app() -> None:
     assert operation["result"]["name"] == "Copy1"
 
 
+def test_runtime_configuration_wrappers_dispatch_to_app() -> None:
+    manager = active_manager()
+    notes = edit_design_notes(manager, text="Verified design note")
+    hpc = set_hpc_options(manager, cores=16, gpus=1, tasks=4)
+    hpc_file = set_hpc_options(manager, acf_file="cluster.acf", configuration_name="Cluster")
+    license_result = set_license_type(manager, license_type="Pack")
+    temp = set_temporary_directory(manager, path="D:/aedt-tmp")
+    assert notes["result"]["notes"] == "Verified design note"
+    assert hpc["method"] == "set_custom_hpc_options"
+    assert hpc["result"]["cores"] == 16
+    assert hpc_file["method"] == "set_hpc_from_file"
+    assert hpc_file["result"]["configuration_name"] == "Cluster"
+    assert license_result["result"]["license_type"] == "Pack"
+    assert temp["result"]["path"] == "D:/aedt-tmp"
+
+
 def test_value_profile_and_material_summaries_use_app_apis() -> None:
     manager = active_manager()
     nominal = get_nominal_variation(manager, with_values=True)
@@ -1170,6 +1287,36 @@ def test_solver_specific_data_wrappers_use_app_api() -> None:
     assert q3d["objects_from_nets"] == ["Net1:object"]
     assert fan["fans_operating_point"]["export_file"] == "fans.csv"
     assert touchstone["result"]["output_file"] == "design.s2p"
+
+
+def test_signal_integrity_and_touchstone_wrappers_use_app_api() -> None:
+    manager = active_manager()
+    expressions = signal_integrity_expressions(
+        manager,
+        drivers=["P1"],
+        receivers=["P2"],
+        excitations=["P1"],
+        math_formula="dB",
+        nets=["Net1"],
+    )
+    imported = import_touchstone_solution(
+        manager,
+        input_file="board.s2p",
+        solution="Imported_Board",
+    )
+    report = create_touchstone_report(
+        manager,
+        name="Imported S",
+        curves=["dB(S(1,1))"],
+        solution="Imported_Board",
+        differential_pairs=True,
+    )
+    assert expressions["get_all_return_loss_list"][0].startswith("dBReturnLoss")
+    assert expressions["get_all_insertion_loss_list"][0].startswith("dBInsertionLoss")
+    assert expressions["get_next_xtalk_list"][0].startswith("dBNEXT")
+    assert expressions["get_fext_xtalk_list"][0].startswith("dBFEXT")
+    assert imported["result"]["solution"] == "Imported_Board"
+    assert report["result"]["differential_pairs"] is True
 
 
 def test_export_diagnostics_uses_allowlisted_methods() -> None:

@@ -19,6 +19,7 @@ aedt_create_frequency_sweep(sweep_kind="linear_count", args=["Setup1", "GHz", 1,
 aedt_mesh_summary
 aedt_validate_design(validation_kind="simple")
 aedt_optimetrics_summary
+aedt_set_hpc_options(cores=8, tasks=2)
 aedt_analyze_setup(name="Setup1", cores=8, blocking=true)
 aedt_create_output_variable(variable="s11_db", expression="dB(S(1,1))")
 aedt_create_report(expressions="dB(S(1,1))", report_name="S11")
@@ -26,6 +27,7 @@ aedt_post_summary
 aedt_post_operation(method="export_report_to_jpg", args=["outputs", "S11"], kwargs={"width": 1200})
 aedt_get_traces_for_plot(kwargs={"setup": "Setup1"})
 aedt_get_touchstone_data(setup="Setup1")
+aedt_signal_integrity_expressions(drivers=["P1"], receivers=["P2"], math_formula="dB")
 aedt_insert_far_field(kwargs={"name": "FF1", "theta_step": 5, "phi_step": 5})
 aedt_get_antenna_data(setup="Setup1", sphere="FF1")
 aedt_get_rcs_data(setup="Setup1", expression="ComplexMonostaticRCSTheta")
