@@ -7,9 +7,15 @@ from ansysmcp.operations import (
     assign_material,
     create_dataset,
     create_field_plot,
+    create_frequency_sweep,
+    create_open_region,
     create_optimization,
+    create_output_variable,
+    create_port,
+    delete_item,
     design_summary,
     export_app_data,
+    import_cad,
     import_dataset,
     insert_design,
     invoke,
@@ -21,6 +27,7 @@ from ansysmcp.operations import (
     set_active_design,
     set_active_project,
     set_variable,
+    source_port_summary,
 )
 from ansysmcp.session import (
     AedtError,
@@ -106,6 +113,8 @@ class DummyApp:
         self.post = DummyPost()
         self.mesh = DummyMesh()
         self.boundaries = ["Boundary1"]
+        self.ports = ["P1"]
+        self.sources = ["Source1"]
         self.setups = ["Setup1"]
 
     def echo(self, value: str) -> str:
@@ -130,6 +139,43 @@ class DummyApp:
 
     def assign_wave_port(self, assignment, name=None):
         return {"assignment": assignment, "name": name}
+
+    def wave_port(self, assignment, name=None):
+        return {"assignment": assignment, "name": name}
+
+    def get_all_sources(self):
+        return ["Source1"]
+
+    def get_all_source_modes(self):
+        return ["Source1:1"]
+
+    def create_linear_count_sweep(self, setup, unit, start_frequency, stop_frequency):
+        return {
+            "setup": setup,
+            "unit": unit,
+            "start_frequency": start_frequency,
+            "stop_frequency": stop_frequency,
+        }
+
+    def create_open_region(self, frequency="1GHz", boundary="Radiation", **kwargs):
+        return {"frequency": frequency, "boundary": boundary, **kwargs}
+
+    def create_output_variable(self, variable, expression, solution=None, context=None):
+        return {
+            "variable": variable,
+            "expression": expression,
+            "solution": solution,
+            "context": context,
+        }
+
+    def import_3d_cad(self, input_file, **kwargs):
+        return {"input_file": input_file, **kwargs}
+
+    def import_dxf(self, input_file, **kwargs):
+        return {"input_file": input_file, "kind": "dxf", **kwargs}
+
+    def delete_setup(self, name):
+        return {"deleted": name}
 
 
 class DummyProject:
@@ -351,6 +397,38 @@ def test_boundary_and_mesh_wrappers_dispatch_to_app_objects() -> None:
     )
     assert boundary["result"] == {"assignment": "Face1", "name": "P1"}
     assert mesh["result"] == {"assignment": "Box1", "maximum_length": "1mm"}
+
+
+def test_port_and_source_summary_wrappers_dispatch_to_app() -> None:
+    manager = active_manager()
+    port = create_port(
+        manager,
+        method="wave_port",
+        args=["Face1"],
+        kwargs={"name": "P1"},
+    )
+    summary = source_port_summary(manager)
+    assert port["result"] == {"assignment": "Face1", "name": "P1"}
+    assert summary["ports"] == ["P1"]
+    assert summary["get_all_source_modes"] == ["Source1:1"]
+
+
+def test_sweep_region_output_import_and_delete_wrappers() -> None:
+    manager = active_manager()
+    sweep = create_frequency_sweep(
+        manager,
+        sweep_kind="linear_count",
+        args=["Setup1", "GHz", 1, 10],
+    )
+    region = create_open_region(manager, frequency="2GHz", boundary="Radiation")
+    output = create_output_variable(manager, variable="s11", expression="dB(S(1,1))")
+    imported = import_cad(manager, input_file="board.dxf")
+    deleted = delete_item(manager, method="delete_setup", args=["Setup1"])
+    assert sweep["method"] == "create_linear_count_sweep"
+    assert region["result"]["frequency"] == "2GHz"
+    assert output["result"]["expression"] == "dB(S(1,1))"
+    assert imported["method"] == "import_dxf"
+    assert deleted["result"] == {"deleted": "Setup1"}
 
 
 def test_native_module_call_uses_get_module() -> None:

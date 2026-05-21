@@ -22,6 +22,25 @@ EXPORT_METHODS: dict[str, str] = {
     "variables": "export_variables_to_csv",
 }
 ASSIGNMENT_METHOD_PREFIXES = ("assign_", "create_")
+DELETE_METHODS = {
+    "delete_design",
+    "delete_project",
+    "delete_setup",
+    "delete_unused_variables",
+    "delete_variable",
+}
+PORT_METHODS = {
+    "circuit_port",
+    "create_floquet_port",
+    "create_spiral_lumped_port",
+    "lumped_port",
+    "wave_port",
+}
+SWEEP_METHODS = {
+    "linear_count": "create_linear_count_sweep",
+    "linear_step": "create_linear_step_sweep",
+    "single_point": "create_single_point_sweep",
+}
 
 
 def list_api(obj: Any, *, include_private: bool = False) -> dict[str, Any]:
@@ -404,6 +423,148 @@ def assign_boundary_or_excitation(
     validate_attr_name(method)
     if not method.startswith(ASSIGNMENT_METHOD_PREFIXES):
         raise AedtError("Boundary/excitation methods must start with assign_ or create_.")
+    app = manager.app
+    if not hasattr(app, method):
+        raise AedtError(f"Active app does not expose {method}.")
+    result = getattr(app, method)(*(args or []), **dict(kwargs or {}))
+    return {"method": method, "result": to_jsonable(result)}
+
+
+def create_port(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_attr_name(method)
+    if method not in PORT_METHODS:
+        supported = ", ".join(sorted(PORT_METHODS))
+        raise AedtError(f"Unsupported port method '{method}'. Supported methods: {supported}.")
+    app = manager.app
+    if not hasattr(app, method):
+        raise AedtError(f"Active app does not expose {method}.")
+    result = getattr(app, method)(*(args or []), **dict(kwargs or {}))
+    return {"method": method, "result": to_jsonable(result)}
+
+
+def source_port_summary(manager: AedtSessionManager) -> dict[str, Any]:
+    app = manager.app
+    summary: dict[str, Any] = {}
+    for attr in ("ports", "sources", "excitations"):
+        if hasattr(app, attr):
+            try:
+                summary[attr] = to_jsonable(getattr(app, attr))
+            except Exception as exc:
+                summary[attr] = {"error": str(exc)}
+    for method_name in ("get_all_sources", "get_all_source_modes", "get_fresnel_floquet_ports"):
+        if hasattr(app, method_name):
+            try:
+                summary[method_name] = to_jsonable(getattr(app, method_name)())
+            except Exception as exc:
+                summary[method_name] = {"error": str(exc)}
+    return summary
+
+
+def create_frequency_sweep(
+    manager: AedtSessionManager,
+    *,
+    sweep_kind: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    normalized = sweep_kind.lower().replace("-", "_").replace(" ", "_")
+    method_name = SWEEP_METHODS.get(normalized, normalized)
+    validate_attr_name(method_name)
+    if not method_name.startswith("create_") or "sweep" not in method_name:
+        raise AedtError("Sweep method must be a public create_*sweep method.")
+    app = manager.app
+    if not hasattr(app, method_name):
+        raise AedtError(f"Active app does not expose {method_name}.")
+    result = getattr(app, method_name)(*(args or []), **dict(kwargs or {}))
+    return {"method": method_name, "result": to_jsonable(result)}
+
+
+def create_open_region(
+    manager: AedtSessionManager,
+    *,
+    frequency: str | int | float | None = "1GHz",
+    boundary: str = "Radiation",
+    apply_infinite_ground: bool = False,
+    gp_axis: str = "-z",
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "create_open_region"):
+        raise AedtError("Active app does not expose create_open_region.")
+    result = app.create_open_region(
+        frequency=frequency,
+        boundary=boundary,
+        apply_infinite_ground=apply_infinite_ground,
+        gp_axis=gp_axis,
+    )
+    return {"result": to_jsonable(result)}
+
+
+def create_output_variable(
+    manager: AedtSessionManager,
+    *,
+    variable: str,
+    expression: str,
+    solution: str | None = None,
+    context: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "create_output_variable"):
+        raise AedtError("Active app does not expose create_output_variable.")
+    result = call_with_supported_kwargs(
+        app.create_output_variable,
+        {
+            "variable": variable,
+            "expression": expression,
+            "solution": solution,
+            "context": context,
+        },
+        positional_fallback=[variable, expression],
+    )
+    return {"variable": variable, "result": to_jsonable(result)}
+
+
+def import_cad(
+    manager: AedtSessionManager,
+    *,
+    input_file: str,
+    import_kind: str | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    suffix = Path(input_file).suffix.lower().lstrip(".")
+    inferred = {
+        "dxf": "import_dxf",
+        "gds": "import_gds_3d",
+        "gdsii": "import_gds_3d",
+        "idf": "import_idf",
+    }.get(suffix, "import_3d_cad")
+    method_name = import_kind or inferred
+    validate_attr_name(method_name)
+    if not method_name.startswith("import_"):
+        raise AedtError("CAD import method must start with import_.")
+    if not hasattr(app, method_name):
+        raise AedtError(f"Active app does not expose {method_name}.")
+    result = getattr(app, method_name)(input_file, **dict(kwargs or {}))
+    return {"method": method_name, "input_file": input_file, "result": to_jsonable(result)}
+
+
+def delete_item(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_attr_name(method)
+    if method not in DELETE_METHODS:
+        supported = ", ".join(sorted(DELETE_METHODS))
+        raise AedtError(f"Unsupported delete method '{method}'. Supported methods: {supported}.")
     app = manager.app
     if not hasattr(app, method):
         raise AedtError(f"Active app does not expose {method}.")

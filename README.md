@@ -75,14 +75,16 @@ After cloning from GitHub, replace the local path with your checkout path.
 | Session | `aedt_start_session`, `aedt_release_session`, `aedt_session_info` |
 | Project/design | `aedt_open_project`, `aedt_save_project`, `aedt_list_projects`, `aedt_new_project`, `aedt_insert_design` |
 | Variables/datasets | `aedt_set_variable`, `aedt_get_variables`, `aedt_create_dataset`, `aedt_import_dataset` |
-| Modeling/materials | `aedt_create_geometry`, `aedt_assign_material` |
-| Simulation | `aedt_create_setup`, `aedt_analyze` |
+| Modeling/materials | `aedt_create_geometry`, `aedt_assign_material`, `aedt_mesh_operation`, `aedt_import_cad` |
+| Ports/sources | `aedt_create_port`, `aedt_source_port_summary`, `aedt_assign_boundary_or_excitation` |
+| Simulation | `aedt_create_setup`, `aedt_create_frequency_sweep`, `aedt_create_open_region`, `aedt_analyze` |
 | Exploration | `aedt_create_parametric_sweep`, `aedt_create_optimization` |
-| Post-processing | `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data` |
+| Post-processing | `aedt_create_output_variable`, `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data` |
 | Export | `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_app_data` |
+| Deletion | `aedt_delete_item` |
 | Broad API | `aedt_run_app_method`, `aedt_list_api`, `aedt_call` |
 
-Current MCP registration: **35 tools**.
+Current MCP registration: **42 tools**.
 
 ## Example Workflows
 
@@ -103,9 +105,12 @@ aedt_start_session(app_name="hfss", version="2024.2", non_graphical=true)
 aedt_set_variable(name="w", expression="10mm")
 aedt_create_geometry(primitive="box", args=[[0, 0, 0], ["w", "5mm", "1mm"]])
 aedt_assign_material(assignment="Box1", material="copper")
+aedt_create_port(method="wave_port", args=["Face1"], kwargs={"name": "P1"})
 aedt_create_setup(name="Setup1")
+aedt_create_frequency_sweep(sweep_kind="linear_count", args=["Setup1", "GHz", 1, 10])
 aedt_create_parametric_sweep(variable="w", start="5mm", stop="20mm", step="5mm")
 aedt_analyze(setup_name="Setup1")
+aedt_create_output_variable(variable="s11", expression="dB(S(1,1))")
 aedt_create_report(expressions="dB(S(1,1))")
 aedt_export_report(report_name="S11", output_path="outputs")
 ```
@@ -131,8 +136,8 @@ uv run python scripts/aedt_smoke.py --mode desktop --version 2024.2 --create-pro
 Current local status:
 
 - `ruff check`: passing
-- `pytest`: 17 passing tests
-- MCP tools registered: 35
+- `pytest`: 20 passing tests
+- MCP tools registered: 42
 - Desktop/native AEDT smoke: passing on AEDT 2024 R2
 
 ## Documentation

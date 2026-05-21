@@ -11,17 +11,23 @@ from ansysmcp.operations import (
     assign_material,
     create_dataset,
     create_field_plot,
+    create_frequency_sweep,
     create_geometry,
+    create_open_region,
     create_optimization,
+    create_output_variable,
     create_parametric_sweep,
+    create_port,
     create_report,
     create_setup,
+    delete_item,
     design_summary,
     export_app_data,
     export_field_plot,
     export_report,
     get_solution_data,
     get_variables,
+    import_cad,
     import_dataset,
     insert_design,
     invoke,
@@ -34,6 +40,7 @@ from ansysmcp.operations import (
     set_active_design,
     set_active_project,
     set_variable,
+    source_port_summary,
 )
 from ansysmcp.serialization import to_jsonable
 from ansysmcp.session import AedtSessionManager, api_manifest, environment_report
@@ -292,6 +299,30 @@ def aedt_assign_boundary_or_excitation(
 
 
 @mcp.tool()
+def aedt_create_port(
+    method: Literal[
+        "circuit_port",
+        "create_floquet_port",
+        "create_spiral_lumped_port",
+        "lumped_port",
+        "wave_port",
+    ],
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Create a common HFSS/Circuit port through a controlled PyAEDT method."""
+    with manager.locked():
+        return create_port(manager, method=method, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_source_port_summary() -> dict[str, Any]:
+    """Summarize available ports, sources, and source modes from the active PyAEDT app."""
+    with manager.locked():
+        return source_port_summary(manager)
+
+
+@mcp.tool()
 def aedt_mesh_operation(
     method: str,
     args: list[Any] | None = None,
@@ -300,6 +331,35 @@ def aedt_mesh_operation(
     """Call a public mesh operation on app.mesh."""
     with manager.locked():
         return mesh_operation(manager, method=method, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_create_frequency_sweep(
+    sweep_kind: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Create a frequency sweep, such as linear_count, linear_step, or single_point."""
+    with manager.locked():
+        return create_frequency_sweep(manager, sweep_kind=sweep_kind, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_create_open_region(
+    frequency: str | int | float | None = "1GHz",
+    boundary: str = "Radiation",
+    apply_infinite_ground: bool = False,
+    gp_axis: str = "-z",
+) -> dict[str, Any]:
+    """Create an HFSS open region around the active model."""
+    with manager.locked():
+        return create_open_region(
+            manager,
+            frequency=frequency,
+            boundary=boundary,
+            apply_infinite_ground=apply_infinite_ground,
+            gp_axis=gp_axis,
+        )
 
 
 @mcp.tool()
@@ -340,6 +400,52 @@ def aedt_create_parametric_sweep(
             name=name,
             variation_type=variation_type,
         )
+
+
+@mcp.tool()
+def aedt_create_output_variable(
+    variable: str,
+    expression: str,
+    solution: str | None = None,
+    context: str | None = None,
+) -> dict[str, Any]:
+    """Create a PyAEDT output variable for post-processing expressions."""
+    with manager.locked():
+        return create_output_variable(
+            manager,
+            variable=variable,
+            expression=expression,
+            solution=solution,
+            context=context,
+        )
+
+
+@mcp.tool()
+def aedt_import_cad(
+    input_file: str,
+    import_kind: str | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Import CAD/layout files through supported PyAEDT import methods."""
+    with manager.locked():
+        return import_cad(manager, input_file=input_file, import_kind=import_kind, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_delete_item(
+    method: Literal[
+        "delete_design",
+        "delete_project",
+        "delete_setup",
+        "delete_unused_variables",
+        "delete_variable",
+    ],
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Delete selected AEDT items through controlled PyAEDT delete methods."""
+    with manager.locked():
+        return delete_item(manager, method=method, args=args, kwargs=kwargs)
 
 
 @mcp.tool()
@@ -631,8 +737,15 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_create_geometry",
             "aedt_assign_material",
             "aedt_assign_boundary_or_excitation",
+            "aedt_create_port",
+            "aedt_source_port_summary",
             "aedt_mesh_operation",
             "aedt_create_setup",
+            "aedt_create_frequency_sweep",
+            "aedt_create_open_region",
+            "aedt_create_output_variable",
+            "aedt_import_cad",
+            "aedt_delete_item",
             "aedt_create_parametric_sweep",
             "aedt_create_optimization",
             "aedt_analyze",

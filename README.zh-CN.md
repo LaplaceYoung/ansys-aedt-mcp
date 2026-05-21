@@ -75,14 +75,16 @@ uv run ansys-aedt-mcp --transport streamable-http
 | 会话 | `aedt_start_session`, `aedt_release_session`, `aedt_session_info` |
 | 项目与设计 | `aedt_open_project`, `aedt_save_project`, `aedt_list_projects`, `aedt_new_project`, `aedt_insert_design` |
 | 变量与数据集 | `aedt_set_variable`, `aedt_get_variables`, `aedt_create_dataset`, `aedt_import_dataset` |
-| 建模与材料 | `aedt_create_geometry`, `aedt_assign_material` |
-| 仿真 | `aedt_create_setup`, `aedt_analyze` |
+| 建模与材料 | `aedt_create_geometry`, `aedt_assign_material`, `aedt_mesh_operation`, `aedt_import_cad` |
+| 端口与激励 | `aedt_create_port`, `aedt_source_port_summary`, `aedt_assign_boundary_or_excitation` |
+| 仿真 | `aedt_create_setup`, `aedt_create_frequency_sweep`, `aedt_create_open_region`, `aedt_analyze` |
 | 探索 | `aedt_create_parametric_sweep`, `aedt_create_optimization` |
-| 后处理 | `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data` |
+| 后处理 | `aedt_create_output_variable`, `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data` |
 | 导出 | `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_app_data` |
+| 删除 | `aedt_delete_item` |
 | 广覆盖 API | `aedt_run_app_method`, `aedt_list_api`, `aedt_call` |
 
-当前 MCP 注册工具数：**35**。
+当前 MCP 注册工具数：**42**。
 
 ## 验证命令
 
@@ -98,8 +100,8 @@ uv run python scripts/aedt_smoke.py --mode desktop --version 2024.2 --create-pro
 当前本地状态：
 
 - `ruff check` 通过
-- `pytest` 17 个用例通过
-- MCP 注册 35 个工具
+- `pytest` 20 个用例通过
+- MCP 注册 42 个工具
 - AEDT 2024 R2 Desktop/native 烟测通过
 
 ## 许可
