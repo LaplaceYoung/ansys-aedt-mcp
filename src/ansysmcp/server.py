@@ -7,6 +7,7 @@ from mcp.server.fastmcp import FastMCP
 
 from ansysmcp.operations import (
     analyze,
+    assign_boundary_or_excitation,
     assign_material,
     create_dataset,
     create_field_plot,
@@ -15,6 +16,7 @@ from ansysmcp.operations import (
     create_parametric_sweep,
     create_report,
     create_setup,
+    design_summary,
     export_app_data,
     export_field_plot,
     export_report,
@@ -25,8 +27,12 @@ from ansysmcp.operations import (
     invoke,
     list_api,
     list_projects,
+    mesh_operation,
+    native_module_call,
     new_project,
     run_app_method,
+    set_active_design,
+    set_active_project,
     set_variable,
 )
 from ansysmcp.serialization import to_jsonable
@@ -144,6 +150,30 @@ def aedt_insert_design(
 
 
 @mcp.tool()
+def aedt_set_active_project(project_name: str) -> dict[str, Any]:
+    """Set the active AEDT project by name."""
+    with manager.locked():
+        return set_active_project(manager, project_name=project_name)
+
+
+@mcp.tool()
+def aedt_set_active_design(
+    design_name: str,
+    design_type: str | None = None,
+) -> dict[str, Any]:
+    """Set the active AEDT design by name."""
+    with manager.locked():
+        return set_active_design(manager, design_name=design_name, design_type=design_type)
+
+
+@mcp.tool()
+def aedt_design_summary() -> dict[str, Any]:
+    """Return a compact summary of session, projects, setups, boundaries, and modeler objects."""
+    with manager.locked():
+        return design_summary(manager)
+
+
+@mcp.tool()
 def aedt_set_variable(
     name: str,
     expression: str,
@@ -242,6 +272,28 @@ def aedt_assign_material(assignment: str | list[str], material: str) -> dict[str
     """Assign an AEDT material to one object or many objects."""
     with manager.locked():
         return assign_material(manager, assignment=assignment, material=material)
+
+
+@mcp.tool()
+def aedt_assign_boundary_or_excitation(
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Call a public assign_/create_ boundary or excitation method on the active PyAEDT app."""
+    with manager.locked():
+        return assign_boundary_or_excitation(manager, method=method, args=args, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_mesh_operation(
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Call a public mesh operation on app.mesh."""
+    with manager.locked():
+        return mesh_operation(manager, method=method, args=args, kwargs=kwargs)
 
 
 @mcp.tool()
@@ -444,6 +496,24 @@ def aedt_export_app_data(
 
 
 @mcp.tool()
+def aedt_native_module_call(
+    module_name: str,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Call a method on an AEDT native module returned by odesign.GetModule(module_name)."""
+    with manager.locked():
+        return native_module_call(
+            manager,
+            module_name=module_name,
+            method=method,
+            args=args,
+            kwargs=kwargs,
+        )
+
+
+@mcp.tool()
 def aedt_run_app_method(
     method: str,
     args: list[Any] | None = None,
@@ -544,12 +614,17 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_list_projects",
             "aedt_new_project",
             "aedt_insert_design",
+            "aedt_set_active_project",
+            "aedt_set_active_design",
+            "aedt_design_summary",
             "aedt_set_variable",
             "aedt_get_variables",
             "aedt_create_dataset",
             "aedt_import_dataset",
             "aedt_create_geometry",
             "aedt_assign_material",
+            "aedt_assign_boundary_or_excitation",
+            "aedt_mesh_operation",
             "aedt_create_setup",
             "aedt_create_parametric_sweep",
             "aedt_create_optimization",
@@ -560,6 +635,7 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_export_report",
             "aedt_export_field_plot",
             "aedt_export_app_data",
+            "aedt_native_module_call",
         ],
         "broad_bridge_tools": ["aedt_list_api", "aedt_call", "aedt_run_app_method"],
         "native_targets": ["odesktop", "oproject", "odesign", "oeditor", "omodule"],

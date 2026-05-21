@@ -15,11 +15,12 @@
 | --- | --- | --- |
 | Environment | `aedt_environment` | Python/PyAEDT availability and supported app names |
 | Session | `aedt_start_session`, `aedt_release_session`, `aedt_session_info` | Launch/connect to major AEDT apps |
-| Project | `aedt_open_project`, `aedt_save_project`, `aedt_list_projects`, `aedt_new_project`, `aedt_insert_design` | Load, save, list, create projects, and insert native designs |
+| Project | `aedt_open_project`, `aedt_save_project`, `aedt_list_projects`, `aedt_new_project`, `aedt_insert_design`, `aedt_set_active_project`, `aedt_set_active_design`, `aedt_design_summary` | Load, save, list, create projects, insert native designs, activate context, and summarize designs |
 | Variables | `aedt_set_variable`, `aedt_get_variables` | Project/design variable management |
 | Datasets | `aedt_create_dataset`, `aedt_import_dataset` | AEDT design and project datasets |
-| Modeling | `aedt_create_geometry`, `aedt_assign_material`, `aedt_call(target="modeler")` | Common primitives, material assignment, and full modeler bridge |
+| Modeling | `aedt_create_geometry`, `aedt_assign_material`, `aedt_mesh_operation`, `aedt_call(target="modeler")` | Common primitives, material assignment, mesh operations, and full modeler bridge |
 | Setup | `aedt_create_setup`, `aedt_call(target="app")` | Setup creation and property updates |
+| Boundaries/excitations | `aedt_assign_boundary_or_excitation`, `aedt_native_module_call`, `aedt_call(target="omodule")` | Dedicated assignment dispatch plus native AEDT module control |
 | Simulation | `aedt_analyze` | Analyze setup or active design |
 | Optimetrics | `aedt_create_parametric_sweep`, `aedt_create_optimization`, `aedt_call(target="parametrics")`, `aedt_call(target="optimizations")` | Parametric sweeps, optimization, sensitivity/statistical/DOE flows, and generic optimization bridge |
 | Reports | `aedt_create_report`, `aedt_create_field_plot`, `aedt_get_solution_data`, `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_app_data` | Report creation, field plots, data access, and exports |
@@ -43,6 +44,7 @@
 ## Current Local Evidence
 
 - `uv sync --extra dev` succeeds with Python 3.12.10, `mcp 1.27.1`, and `pyaedt 0.27.1`.
+- MCP server currently registers 34 tools.
 - `uv run pyaedt --json aedt-versions` detects AEDT `2024.2` at `G:\ANSYSEM2024\AnsysEM\v242\Win64`.
 - `aedt_start_session(app_name="desktop", version="2024.2", non_graphical=True)` launches and releases AEDT Desktop successfully.
 - `aedt_new_project(project_name="MCPNativeProject")` creates and lists a native AEDT project successfully.

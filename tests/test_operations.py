@@ -3,17 +3,23 @@ from __future__ import annotations
 import pytest
 
 from ansysmcp.operations import (
+    assign_boundary_or_excitation,
     assign_material,
     create_dataset,
     create_field_plot,
     create_optimization,
+    design_summary,
     export_app_data,
     import_dataset,
     insert_design,
     invoke,
     list_api,
     list_projects,
+    mesh_operation,
+    native_module_call,
     new_project,
+    set_active_design,
+    set_active_project,
     set_variable,
 )
 from ansysmcp.session import AedtError, AedtSessionManager, AedtSessionState, normalize_app_name
@@ -81,12 +87,20 @@ class DummyPost:
         }
 
 
+class DummyMesh:
+    def assign_length_mesh(self, assignment, maximum_length):
+        return {"assignment": assignment, "maximum_length": maximum_length}
+
+
 class DummyApp:
     def __init__(self) -> None:
         self.variable_manager = DummyVariableManager()
         self.modeler = DummyModeler()
         self.optimizations = DummyOptimizations()
         self.post = DummyPost()
+        self.mesh = DummyMesh()
+        self.boundaries = ["Boundary1"]
+        self.setups = ["Setup1"]
 
     def echo(self, value: str) -> str:
         return value
@@ -108,6 +122,9 @@ class DummyApp:
     def export_results(self, export_folder=None):
         return [export_folder]
 
+    def assign_wave_port(self, assignment, name=None):
+        return {"assignment": assignment, "name": name}
+
 
 class DummyProject:
     def __init__(self, name="Project1") -> None:
@@ -123,6 +140,17 @@ class DummyProject:
     def InsertDesign(self, design_type, design_name, solution_type, _unused):
         self.designs.append((design_type, design_name, solution_type))
         return True
+
+    def GetModule(self, module_name):
+        return DummyModule(module_name)
+
+
+class DummyModule:
+    def __init__(self, module_name) -> None:
+        self.module_name = module_name
+
+    def GetSetups(self):
+        return ["Setup1"]
 
 
 class DummyNativeDesktop:
@@ -160,6 +188,13 @@ class DummyDesktop:
         if name:
             self.active = next(project for project in self.projects if project.GetName() == name)
         return self.active
+
+    def active_design(self, name=None, design_type=None, project_object=None):
+        if name is None:
+            return self.active
+        if self.active and name:
+            self.active.designs.append((design_type, name, ""))
+        return {"name": name, "design_type": design_type, "project": project_object}
 
     def design_list(self, project=None):
         selected = self.active
@@ -269,3 +304,45 @@ def test_native_project_tools_use_desktop_api() -> None:
     assert project["project_name"] == "MCPNativeProject"
     assert design["result"] is True
     assert projects["designs"]["MCPNativeProject"] == ["HFSSDesign1"]
+
+
+def test_active_project_and_design_tools_use_desktop_api() -> None:
+    manager = desktop_manager()
+    new_project(manager, project_name="MCPNativeProject")
+    project = set_active_project(manager, project_name="MCPNativeProject")
+    design = set_active_design(manager, design_name="HFSSDesign1", design_type="HFSS")
+    assert project["projects"]["active_project_name"] == "MCPNativeProject"
+    assert design["design"]["name"] == "HFSSDesign1"
+
+
+def test_design_summary_includes_session_and_app_lists() -> None:
+    summary = design_summary(active_manager())
+    assert summary["session"]["active"] is True
+    assert summary["setups"] == ["Setup1"]
+    assert summary["boundaries"] == ["Boundary1"]
+
+
+def test_boundary_and_mesh_wrappers_dispatch_to_app_objects() -> None:
+    manager = active_manager()
+    boundary = assign_boundary_or_excitation(
+        manager,
+        method="assign_wave_port",
+        args=["Face1"],
+        kwargs={"name": "P1"},
+    )
+    mesh = mesh_operation(
+        manager,
+        method="assign_length_mesh",
+        args=["Box1"],
+        kwargs={"maximum_length": "1mm"},
+    )
+    assert boundary["result"] == {"assignment": "Face1", "name": "P1"}
+    assert mesh["result"] == {"assignment": "Box1", "maximum_length": "1mm"}
+
+
+def test_native_module_call_uses_get_module() -> None:
+    manager = desktop_manager()
+    new_project(manager, project_name="MCPNativeProject")
+    result = native_module_call(manager, module_name="AnalysisSetup", method="GetSetups")
+    assert result["module_name"] == "AnalysisSetup"
+    assert result["result"] == ["Setup1"]

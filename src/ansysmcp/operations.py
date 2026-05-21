@@ -21,6 +21,7 @@ EXPORT_METHODS: dict[str, str] = {
     "touchstone": "export_touchstone",
     "variables": "export_variables_to_csv",
 }
+ASSIGNMENT_METHOD_PREFIXES = ("assign_", "create_")
 
 
 def list_api(obj: Any, *, include_private: bool = False) -> dict[str, Any]:
@@ -335,6 +336,113 @@ def insert_design(
         "result": to_jsonable(result),
         "design_name": design_name,
         "designs": list_projects(manager),
+    }
+
+
+def set_active_project(
+    manager: AedtSessionManager,
+    *,
+    project_name: str,
+) -> dict[str, Any]:
+    desktop = manager.target("desktop")
+    if hasattr(desktop, "active_project"):
+        project = desktop.active_project(project_name)
+        return {"project": to_jsonable(project), "projects": list_projects(manager)}
+    raise AedtError("Desktop object does not expose active_project.")
+
+
+def set_active_design(
+    manager: AedtSessionManager,
+    *,
+    design_name: str,
+    design_type: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if hasattr(app, "set_active_design"):
+        result = app.set_active_design(design_name)
+        return {"result": to_jsonable(result), "session": manager.info()}
+    desktop = manager.target("desktop")
+    if hasattr(desktop, "active_design"):
+        design = desktop.active_design(name=design_name, design_type=design_type)
+        return {"design": to_jsonable(design), "projects": list_projects(manager)}
+    raise AedtError("Active session does not expose a design activation method.")
+
+
+def design_summary(manager: AedtSessionManager) -> dict[str, Any]:
+    summary: dict[str, Any] = {"session": manager.info()}
+    try:
+        summary["projects"] = list_projects(manager)
+    except Exception as exc:
+        summary["projects"] = {"error": str(exc)}
+
+    app = manager.app
+    for attr in ("setups", "boundaries", "excitations", "design_datasets", "project_datasets"):
+        if hasattr(app, attr):
+            try:
+                summary[attr] = to_jsonable(getattr(app, attr))
+            except Exception as exc:
+                summary[attr] = {"error": str(exc)}
+
+    modeler = getattr(app, "modeler", None)
+    if modeler is not None:
+        for attr in ("object_names", "solid_names", "sheet_names", "line_names"):
+            if hasattr(modeler, attr):
+                try:
+                    summary[f"modeler_{attr}"] = to_jsonable(getattr(modeler, attr))
+                except Exception as exc:
+                    summary[f"modeler_{attr}"] = {"error": str(exc)}
+    return summary
+
+
+def assign_boundary_or_excitation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_attr_name(method)
+    if not method.startswith(ASSIGNMENT_METHOD_PREFIXES):
+        raise AedtError("Boundary/excitation methods must start with assign_ or create_.")
+    app = manager.app
+    if not hasattr(app, method):
+        raise AedtError(f"Active app does not expose {method}.")
+    result = getattr(app, method)(*(args or []), **dict(kwargs or {}))
+    return {"method": method, "result": to_jsonable(result)}
+
+
+def mesh_operation(
+    manager: AedtSessionManager,
+    *,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_attr_name(method)
+    mesh = manager.target("mesh")
+    if not hasattr(mesh, method):
+        raise AedtError(f"Mesh object does not expose {method}.")
+    result = getattr(mesh, method)(*(args or []), **dict(kwargs or {}))
+    return {"method": method, "result": to_jsonable(result)}
+
+
+def native_module_call(
+    manager: AedtSessionManager,
+    *,
+    module_name: str,
+    method: str,
+    args: list[Any] | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_attr_name(method)
+    module = manager.target("omodule", module_name=module_name)
+    if not hasattr(module, method):
+        raise AedtError(f"AEDT module {module_name} does not expose {method}.")
+    result = getattr(module, method)(*(args or []), **dict(kwargs or {}))
+    return {
+        "module_name": module_name,
+        "method": method,
+        "result": to_jsonable(result),
     }
 
 

@@ -82,7 +82,7 @@ After cloning from GitHub, replace the local path with your checkout path.
 | Export | `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_app_data` |
 | Broad API | `aedt_run_app_method`, `aedt_list_api`, `aedt_call` |
 
-Current MCP registration: **28 tools**.
+Current MCP registration: **34 tools**.
 
 ## Example Workflows
 
@@ -131,8 +131,8 @@ uv run python scripts/aedt_smoke.py --mode desktop --version 2024.2 --create-pro
 Current local status:
 
 - `ruff check`: passing
-- `pytest`: 13 passing tests
-- MCP tools registered: 28
+- `pytest`: 17 passing tests
+- MCP tools registered: 34
 - Desktop/native AEDT smoke: passing on AEDT 2024 R2
 
 ## Documentation

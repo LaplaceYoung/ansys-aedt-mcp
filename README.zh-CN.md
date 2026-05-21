@@ -82,7 +82,7 @@ uv run ansys-aedt-mcp --transport streamable-http
 | 导出 | `aedt_export_report`, `aedt_export_field_plot`, `aedt_export_app_data` |
 | 广覆盖 API | `aedt_run_app_method`, `aedt_list_api`, `aedt_call` |
 
-当前 MCP 注册工具数：**28**。
+当前 MCP 注册工具数：**34**。
 
 ## 验证命令
 
@@ -98,8 +98,8 @@ uv run python scripts/aedt_smoke.py --mode desktop --version 2024.2 --create-pro
 当前本地状态：
 
 - `ruff check` 通过
-- `pytest` 13 个用例通过
-- MCP 注册 28 个工具
+- `pytest` 17 个用例通过
+- MCP 注册 34 个工具
 - AEDT 2024 R2 Desktop/native 烟测通过
 
 ## 许可
