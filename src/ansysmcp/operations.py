@@ -50,6 +50,13 @@ OPTIMETRICS_SETUP_OPERATION_METHODS = {
     "delete",
     "update",
 }
+NATIVE_MODULE_SUMMARY_METHODS: dict[str, tuple[str, ...]] = {
+    "AnalysisSetup": ("GetSetups",),
+    "BoundarySetup": ("GetBoundaries", "GetExcitations"),
+    "ReportSetup": ("GetAllReportNames", "GetReports"),
+    "Optimetrics": ("GetSetupNames",),
+    "FieldsReporter": ("GetFieldPlotNames",),
+}
 MODELER_OPERATION_METHODS = {
     "automatic_thicken_sheets",
     "change_region_coordinate_system",
@@ -2088,6 +2095,88 @@ def native_module_call(
         "module_name": module_name,
         "method": method,
         "result": to_jsonable(result),
+    }
+
+
+def native_module_summary(
+    manager: AedtSessionManager,
+    *,
+    module_name: str,
+    method_names: list[str] | None = None,
+    include_methods: bool = True,
+) -> dict[str, Any]:
+    module = manager.target("omodule", module_name=module_name)
+    methods = [
+        name
+        for name in dir(module)
+        if not name.startswith("_") and callable(getattr(module, name, None))
+    ]
+    summary: dict[str, Any] = {
+        "module_name": module_name,
+        "type": f"{type(module).__module__}.{type(module).__name__}",
+    }
+    if include_methods:
+        summary["methods"] = methods
+    selected_methods = method_names or list(NATIVE_MODULE_SUMMARY_METHODS.get(module_name, ()))
+    results: dict[str, Any] = {}
+    for method_name in selected_methods:
+        validate_attr_name(method_name)
+        method = getattr(module, method_name, None)
+        if callable(method):
+            try:
+                results[method_name] = to_jsonable(method())
+            except Exception as exc:
+                results[method_name] = {"error": str(exc)}
+    summary["summary"] = results
+    return summary
+
+
+def native_module_batch_call(
+    manager: AedtSessionManager,
+    *,
+    module_name: str,
+    calls: list[Mapping[str, Any]],
+    continue_on_error: bool = False,
+) -> dict[str, Any]:
+    module = manager.target("omodule", module_name=module_name)
+    results: list[dict[str, Any]] = []
+    for index, call in enumerate(calls):
+        method_name = str(call.get("method", ""))
+        validate_attr_name(method_name)
+        args = list(call.get("args") or [])
+        kwargs = dict(call.get("kwargs") or {})
+        if not hasattr(module, method_name):
+            error = f"AEDT module {module_name} does not expose {method_name}."
+            results.append({"index": index, "method": method_name, "ok": False, "error": error})
+            if not continue_on_error:
+                return {
+                    "module_name": module_name,
+                    "ok": False,
+                    "completed": index + 1,
+                    "results": results,
+                }
+            continue
+        try:
+            result = getattr(module, method_name)(*args, **kwargs)
+            results.append(
+                {"index": index, "method": method_name, "ok": True, "result": to_jsonable(result)}
+            )
+        except Exception as exc:
+            results.append(
+                {"index": index, "method": method_name, "ok": False, "error": str(exc)}
+            )
+            if not continue_on_error:
+                return {
+                    "module_name": module_name,
+                    "ok": False,
+                    "completed": index + 1,
+                    "results": results,
+                }
+    return {
+        "module_name": module_name,
+        "ok": all(item["ok"] for item in results),
+        "completed": len(results),
+        "results": results,
     }
 
 

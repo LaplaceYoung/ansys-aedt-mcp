@@ -22,7 +22,7 @@
 | Datasets/import | `aedt_create_dataset`, `aedt_import_dataset`, `aedt_import_cad` | AEDT design/project datasets and CAD/layout import |
 | Modeling | `aedt_create_geometry`, `aedt_modeler_summary`, `aedt_modeler_operation`, `aedt_assign_material`, `aedt_materials_summary`, `aedt_materials_operation`, `aedt_material_object_summary`, `aedt_mesh_operation`, `aedt_mesh_summary`, `aedt_call(target="modeler")` | Common primitives, modeler summaries, transforms, booleans, sweeps, coordinate systems, material assignment, material library operations, object material property summaries, mesh operation summaries, mesh operations, and full modeler bridge |
 | Setup/sweeps | `aedt_create_setup`, `aedt_setup_summary`, `aedt_get_setup_properties`, `aedt_update_setup`, `aedt_create_frequency_sweep`, `aedt_create_open_region`, `aedt_set_hpc_options`, `aedt_set_license_type`, `aedt_set_temporary_directory`, `aedt_call(target="app")` | Setup creation, setup introspection, setup property updates, frequency sweeps, open-region setup, HPC options, license mode, and temporary directory control |
-| Boundaries/excitations | `aedt_assign_boundary_or_excitation`, `aedt_create_port`, `aedt_source_port_summary`, `aedt_native_module_call`, `aedt_call(target="omodule")` | Dedicated assignment dispatch, ports/sources, and native AEDT module control |
+| Boundaries/excitations | `aedt_assign_boundary_or_excitation`, `aedt_create_port`, `aedt_source_port_summary`, `aedt_native_module_call`, `aedt_native_module_summary`, `aedt_native_module_batch_call`, `aedt_call(target="omodule")` | Dedicated assignment dispatch, ports/sources, native AEDT module summaries, and native module control |
 | Solver-specific controls | `aedt_hfss_operation`, `aedt_maxwell_operation`, `aedt_q3d_operation`, `aedt_q3d_net_summary`, `aedt_icepak_operation`, `aedt_get_fans_operating_point`, `aedt_circuit_operation` | Allowlisted HFSS boundaries/sources/scattering, Maxwell windings/motion/forces, Q3D net summaries/matrices, Icepak thermal controls/fan operating points, and Circuit schematic/source operations |
 | Simulation | `aedt_analyze`, `aedt_analyze_setup`, `aedt_solve_in_batch`, `aedt_apply_solved_variation`, `aedt_validate_design`, `aedt_cleanup_solution`, `aedt_list_variations` | Analyze setup or active design, run batch solves, apply solved variations, validate designs, clean solution data, and list variations |
 | Optimetrics | `aedt_create_parametric_sweep`, `aedt_create_optimization`, `aedt_optimetrics_summary`, `aedt_parametric_operation`, `aedt_optimization_operation`, `aedt_optimetrics_setup_operation`, `aedt_call(target="parametrics")`, `aedt_call(target="optimizations")` | Parametric sweeps, optimization, sensitivity/statistical/DOE flows, setup import/delete/update/calculation controls, and generic optimization bridge |
@@ -30,7 +30,7 @@
 | Deletion | `aedt_delete_item` | Controlled deletion of setups, variables, projects, and designs |
 | Project/design maintenance | `aedt_change_design_settings`, `aedt_change_validation_settings`, `aedt_edit_design_notes`, `aedt_read_design_data`, `aedt_project_design_operation` | Design settings, validation settings, design notes, design data reads, and allowlisted project/design operations |
 | Configuration | `aedt_configuration_summary`, `aedt_configuration_operation`, `aedt_update_configuration_options` | Configuration import/export and export/import option management |
-| Native/OO properties | `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property`, `aedt_oo_object_names`, `aedt_oo_get_properties`, `aedt_oo_get_property_value`, `aedt_oo_set_property_value` | AEDT `GetProperties`, `GetPropertyValue`, `ChangeProperty`, and PyAEDT object-oriented property tree control |
+| Native/OO properties | `aedt_native_module_call`, `aedt_native_module_summary`, `aedt_native_module_batch_call`, `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property`, `aedt_oo_object_names`, `aedt_oo_get_properties`, `aedt_oo_get_property_value`, `aedt_oo_set_property_value` | AEDT native module inspection/batch calls, `GetProperties`, `GetPropertyValue`, `ChangeProperty`, and PyAEDT object-oriented property tree control |
 | Broad API/workflows | `aedt_list_api`, `aedt_call`, `aedt_batch_call`, `aedt_run_app_method` | Public PyAEDT/native AEDT method access and ordered multi-step execution |
 
 ## Native AEDT Bridge Targets
@@ -51,7 +51,7 @@
 ## Current Local Evidence
 
 - `uv sync --extra dev` succeeds with Python 3.12.10, `mcp 1.27.1`, and `pyaedt 0.27.1`.
-- MCP server currently registers 107 tools.
+- MCP server currently registers 109 tools.
 - `uv run pyaedt --json aedt-versions` detects AEDT `2024.2` at `G:\ANSYSEM2024\AnsysEM\v242\Win64`.
 - `aedt_start_session(app_name="desktop", version="2024.2", non_graphical=True)` launches and releases AEDT Desktop successfully.
 - `aedt_new_project(project_name="MCPNativeProject")` creates and lists a native AEDT project successfully.

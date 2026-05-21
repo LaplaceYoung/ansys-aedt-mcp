@@ -64,7 +64,9 @@ from ansysmcp.operations import (
     native_change_property,
     native_get_properties,
     native_get_property_value,
+    native_module_batch_call,
     native_module_call,
+    native_module_summary,
     new_project,
     oo_get_properties,
     oo_get_property_value,
@@ -770,6 +772,12 @@ class DummyModule:
     def GetSetups(self):
         return ["Setup1"]
 
+    def GetBoundaries(self):
+        return ["Boundary1"]
+
+    def RenameSetup(self, old_name, new_name):
+        return {"old_name": old_name, "new_name": new_name}
+
 
 class DummyNativeDesktop:
     def __init__(self, desktop) -> None:
@@ -1391,8 +1399,21 @@ def test_native_module_call_uses_get_module() -> None:
     manager = desktop_manager()
     new_project(manager, project_name="MCPNativeProject")
     result = native_module_call(manager, module_name="AnalysisSetup", method="GetSetups")
+    summary = native_module_summary(manager, module_name="AnalysisSetup")
+    batch = native_module_batch_call(
+        manager,
+        module_name="AnalysisSetup",
+        calls=[
+            {"method": "GetSetups"},
+            {"method": "RenameSetup", "args": ["Setup1", "Setup2"]},
+        ],
+    )
     assert result["module_name"] == "AnalysisSetup"
     assert result["result"] == ["Setup1"]
+    assert "GetSetups" in summary["methods"]
+    assert summary["summary"]["GetSetups"] == ["Setup1"]
+    assert batch["ok"] is True
+    assert batch["results"][1]["result"]["new_name"] == "Setup2"
 
 
 def test_native_property_wrappers_use_property_api() -> None:

@@ -76,7 +76,9 @@ from ansysmcp.operations import (
     native_change_property,
     native_get_properties,
     native_get_property_value,
+    native_module_batch_call,
     native_module_call,
+    native_module_summary,
     new_project,
     oo_get_properties,
     oo_get_property_value,
@@ -1410,6 +1412,38 @@ def aedt_native_module_call(
 
 
 @mcp.tool()
+def aedt_native_module_summary(
+    module_name: str,
+    method_names: list[str] | None = None,
+    include_methods: bool = True,
+) -> dict[str, Any]:
+    """Return callable method names and selected no-argument summaries for an AEDT native module."""
+    with manager.locked():
+        return native_module_summary(
+            manager,
+            module_name=module_name,
+            method_names=method_names,
+            include_methods=include_methods,
+        )
+
+
+@mcp.tool()
+def aedt_native_module_batch_call(
+    module_name: str,
+    calls: list[dict[str, Any]],
+    continue_on_error: bool = False,
+) -> dict[str, Any]:
+    """Run ordered calls against one AEDT native module returned by odesign.GetModule."""
+    with manager.locked():
+        return native_module_batch_call(
+            manager,
+            module_name=module_name,
+            calls=calls,
+            continue_on_error=continue_on_error,
+        )
+
+
+@mcp.tool()
 def aedt_native_get_properties(
     target: Literal["oproject", "odesign", "oeditor", "omodule"],
     tab: str,
@@ -1737,6 +1771,8 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_export_icepak_summary",
             "aedt_export_app_data",
             "aedt_native_module_call",
+            "aedt_native_module_summary",
+            "aedt_native_module_batch_call",
             "aedt_native_get_properties",
             "aedt_native_get_property_value",
             "aedt_native_change_property",

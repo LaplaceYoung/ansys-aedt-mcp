@@ -85,10 +85,10 @@ uv run ansys-aedt-mcp --transport streamable-http
 | 删除 | `aedt_delete_item` |
 | 项目与设计维护 | `aedt_change_design_settings`, `aedt_change_validation_settings`, `aedt_edit_design_notes`, `aedt_read_design_data`, `aedt_project_design_operation` |
 | 配置 | `aedt_configuration_summary`, `aedt_configuration_operation`, `aedt_update_configuration_options` |
-| 原生/OO 属性 | `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property`, `aedt_oo_object_names`, `aedt_oo_get_properties`, `aedt_oo_get_property_value`, `aedt_oo_set_property_value` |
+| 原生/OO 属性 | `aedt_native_module_call`, `aedt_native_module_summary`, `aedt_native_module_batch_call`, `aedt_native_get_properties`, `aedt_native_get_property_value`, `aedt_native_change_property`, `aedt_oo_object_names`, `aedt_oo_get_properties`, `aedt_oo_get_property_value`, `aedt_oo_set_property_value` |
 | 广覆盖 API/工作流 | `aedt_run_app_method`, `aedt_list_api`, `aedt_call`, `aedt_batch_call` |
 
-当前 MCP 注册工具数：**107**。
+当前 MCP 注册工具数：**109**。
 
 ## 验证命令
 
@@ -105,7 +105,7 @@ uv run python scripts/aedt_smoke.py --mode desktop --version 2024.2 --create-pro
 
 - `ruff check` 通过
 - `pytest` 39 个用例通过
-- MCP 注册 107 个工具
+- MCP 注册 109 个工具
 - AEDT 2024 R2 Desktop/native 烟测通过
 
 ## 示例

@@ -9,7 +9,9 @@ aedt_new_project(project_name="MCPNativeProject")
 aedt_insert_design(design_type="HFSS", design_name="HFSSDesign1", solution_type="DrivenModal")
 aedt_set_active_project(project_name="MCPNativeProject")
 aedt_set_active_design(design_name="HFSSDesign1", design_type="HFSS")
+aedt_native_module_summary(module_name="AnalysisSetup")
 aedt_native_module_call(module_name="AnalysisSetup", method="GetSetups")
+aedt_native_module_batch_call(module_name="AnalysisSetup", calls=[{"method": "GetSetups"}])
 aedt_native_get_properties(target="oproject", tab="ProjectVariableTab", server="ProjectVariables")
 aedt_native_change_property(target="oproject", change_payload=["NAME:AllTabs"])
 aedt_call(target="omodule", module_name="ReportSetup", method="GetAllReportNames")
@@ -18,4 +20,3 @@ aedt_release_session(close_projects=true, close_desktop=true)
 ```
 
 Use `aedt_list_api(target="omodule", module_name="...")` to inspect available native module methods before building larger native workflows.
-
