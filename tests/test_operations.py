@@ -27,11 +27,15 @@ from ansysmcp.operations import (
     export_diagnostics,
     export_icepak_summary,
     export_matrix_data,
+    export_touchstone_data,
+    get_antenna_data,
     get_evaluated_value,
+    get_fans_operating_point,
     get_monitor_data,
     get_nominal_variation,
     get_output_variable,
     get_profile,
+    get_rcs_data,
     get_setup_properties,
     get_touchstone_data,
     get_traces_for_plot,
@@ -40,6 +44,7 @@ from ansysmcp.operations import (
     import_cad,
     import_dataset,
     insert_design,
+    insert_far_field,
     insert_near_field,
     invoke,
     list_api,
@@ -69,6 +74,7 @@ from ansysmcp.operations import (
     post_operation,
     post_summary,
     project_design_operation,
+    q3d_net_summary,
     q3d_operation,
     read_design_data,
     set_active_design,
@@ -333,6 +339,8 @@ class DummyApp:
         self.boundaries = ["Boundary1"]
         self.ports = ["P1"]
         self.sources = ["Source1"]
+        self.nets = ["Net1"]
+        self.net_names = ["Net1"]
         self.setups = ["Setup1"]
         self.setup_names = ["Setup1"]
         self.setup_sweeps_names = ["Sweep1"]
@@ -523,6 +531,95 @@ class DummyApp:
 
     def get_monitor_data(self):
         return [{"name": "Monitor1", "quantity": "Temperature"}]
+
+    def insert_infinite_sphere(self, **kwargs):
+        return {"name": kwargs.get("name", "InfiniteSphere1"), **kwargs}
+
+    def get_antenna_data(
+        self,
+        frequencies=None,
+        setup=None,
+        sphere=None,
+        variations=None,
+        overwrite=True,
+        link_to_hfss=True,
+        export_touchstone=True,
+        set_phase_center_per_port=True,
+    ):
+        return {
+            "frequencies": frequencies,
+            "setup": setup,
+            "sphere": sphere,
+            "variations": variations,
+            "overwrite": overwrite,
+            "link_to_hfss": link_to_hfss,
+            "export_touchstone": export_touchstone,
+            "set_phase_center_per_port": set_phase_center_per_port,
+        }
+
+    def get_rcs_data(
+        self,
+        frequencies=None,
+        setup=None,
+        expression="ComplexMonostaticRCSTheta",
+        variations=None,
+        overwrite=True,
+        link_to_hfss=True,
+        variation_name=None,
+    ):
+        return {
+            "frequencies": frequencies,
+            "setup": setup,
+            "expression": expression,
+            "variations": variations,
+            "overwrite": overwrite,
+            "link_to_hfss": link_to_hfss,
+            "variation_name": variation_name,
+        }
+
+    def net_sources(self, net_name):
+        return [f"{net_name}:source"]
+
+    def net_sinks(self, net_name):
+        return [f"{net_name}:sink"]
+
+    def objects_from_nets(self, net_name):
+        return [f"{net_name}:object"]
+
+    def get_fans_operating_point(
+        self,
+        export_file=None,
+        setup_name=None,
+        time_step=None,
+        design_variation=None,
+    ):
+        return {
+            "export_file": export_file,
+            "setup_name": setup_name,
+            "time_step": time_step,
+            "design_variation": design_variation,
+            "fans": [{"name": "Fan1", "flow": "1m^3/s"}],
+        }
+
+    def export_touchstone(
+        self,
+        setup=None,
+        sweep=None,
+        output_file=None,
+        variations=None,
+        variations_value=None,
+        renormalization=False,
+        impedance=None,
+    ):
+        return {
+            "setup": setup,
+            "sweep": sweep,
+            "output_file": output_file,
+            "variations": variations,
+            "variations_value": variations_value,
+            "renormalization": renormalization,
+            "impedance": impedance,
+        }
 
     def insert_near_field_sphere(self, name, **kwargs):
         return {"name": name, **kwargs}
@@ -1036,6 +1133,43 @@ def test_post_processing_data_wrappers_use_app_api() -> None:
     assert monitors["monitor_data"][0]["name"] == "Monitor1"
     assert near_field["method"] == "insert_near_field_sphere"
     assert near_field["result"]["radius"] == "10mm"
+
+
+def test_solver_specific_data_wrappers_use_app_api() -> None:
+    manager = active_manager()
+    far_field = insert_far_field(manager, kwargs={"name": "FF1", "theta_step": 5})
+    antenna = get_antenna_data(
+        manager,
+        frequencies=[2.4, 5.0],
+        setup="Setup1",
+        sphere="FF1",
+        variations={"w": "10mm"},
+    )
+    rcs = get_rcs_data(
+        manager,
+        frequencies=10.0,
+        setup="Setup1",
+        expression="ComplexMonostaticRCSTheta",
+        variation_name="nominal",
+    )
+    q3d = q3d_net_summary(manager, net_name="Net1")
+    fan = get_fans_operating_point(manager, export_file="fans.csv", setup_name="Setup1")
+    touchstone = export_touchstone_data(
+        manager,
+        setup="Setup1",
+        sweep="Sweep1",
+        output_file="design.s2p",
+        renormalization=True,
+        impedance=50,
+    )
+    assert far_field["method"] == "insert_infinite_sphere"
+    assert far_field["result"]["theta_step"] == 5
+    assert antenna["antenna_data"]["sphere"] == "FF1"
+    assert rcs["rcs_data"]["variation_name"] == "nominal"
+    assert q3d["net_sources"] == ["Net1:source"]
+    assert q3d["objects_from_nets"] == ["Net1:object"]
+    assert fan["fans_operating_point"]["export_file"] == "fans.csv"
+    assert touchstone["result"]["output_file"] == "design.s2p"
 
 
 def test_export_diagnostics_uses_allowlisted_methods() -> None:

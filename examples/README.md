@@ -5,6 +5,7 @@ These workflows show practical MCP call sequences for common AEDT automation tas
 ## Workflows
 
 - [HFSS S-parameter workflow](workflows/hfss-sparameter-workflow.md)
+- [Q3D net workflow](workflows/q3d-net-workflow.md)
 - [Icepak thermal workflow](workflows/icepak-thermal-workflow.md)
 - [Desktop/native AEDT workflow](workflows/native-desktop-workflow.md)
 
@@ -14,4 +15,3 @@ These workflows show practical MCP call sequences for common AEDT automation tas
 - `uv sync --extra dev`
 - `uv run ansys-aedt-mcp`
 - Solver licenses for workflows that instantiate solver apps directly.
-

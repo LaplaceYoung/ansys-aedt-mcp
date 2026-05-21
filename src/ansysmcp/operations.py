@@ -1611,6 +1611,160 @@ def get_monitor_data(manager: AedtSessionManager) -> dict[str, Any]:
     return {"monitor_data": to_jsonable(app.get_monitor_data())}
 
 
+def insert_far_field(
+    manager: AedtSessionManager,
+    *,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "insert_infinite_sphere"):
+        raise AedtError("Active app does not expose insert_infinite_sphere.")
+    result = app.insert_infinite_sphere(**dict(kwargs or {}))
+    return {"method": "insert_infinite_sphere", "result": to_jsonable(result)}
+
+
+def get_antenna_data(
+    manager: AedtSessionManager,
+    *,
+    frequencies: float | list[Any] | None = None,
+    setup: str | None = None,
+    sphere: str | None = None,
+    variations: Mapping[str, Any] | None = None,
+    overwrite: bool = True,
+    link_to_hfss: bool = True,
+    export_touchstone: bool = True,
+    set_phase_center_per_port: bool = True,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_antenna_data"):
+        raise AedtError("Active app does not expose get_antenna_data.")
+    result = call_with_supported_kwargs(
+        app.get_antenna_data,
+        {
+            "frequencies": frequencies,
+            "setup": setup,
+            "sphere": sphere,
+            "variations": variations,
+            "overwrite": overwrite,
+            "link_to_hfss": link_to_hfss,
+            "export_touchstone": export_touchstone,
+            "set_phase_center_per_port": set_phase_center_per_port,
+        },
+    )
+    return {"antenna_data": to_jsonable(result)}
+
+
+def get_rcs_data(
+    manager: AedtSessionManager,
+    *,
+    frequencies: float | list[Any] | None = None,
+    setup: str | None = None,
+    expression: str = "ComplexMonostaticRCSTheta",
+    variations: Mapping[str, Any] | None = None,
+    overwrite: bool = True,
+    link_to_hfss: bool = True,
+    variation_name: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_rcs_data"):
+        raise AedtError("Active app does not expose get_rcs_data.")
+    result = call_with_supported_kwargs(
+        app.get_rcs_data,
+        {
+            "frequencies": frequencies,
+            "setup": setup,
+            "expression": expression,
+            "variations": variations,
+            "overwrite": overwrite,
+            "link_to_hfss": link_to_hfss,
+            "variation_name": variation_name,
+        },
+    )
+    return {"rcs_data": to_jsonable(result)}
+
+
+def q3d_net_summary(
+    manager: AedtSessionManager,
+    *,
+    net_name: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    summary: dict[str, Any] = {}
+    for attr in ("nets", "net_names", "sources"):
+        if hasattr(app, attr):
+            try:
+                summary[attr] = to_jsonable(getattr(app, attr))
+            except Exception as exc:
+                summary[attr] = {"error": str(exc)}
+    if net_name:
+        for method_name in ("net_sources", "net_sinks", "objects_from_nets"):
+            method = getattr(app, method_name, None)
+            if callable(method):
+                try:
+                    summary[method_name] = to_jsonable(method(net_name))
+                except Exception as exc:
+                    summary[method_name] = {"error": str(exc)}
+    method = getattr(app, "sources", None)
+    if callable(method):
+        try:
+            summary["sources"] = to_jsonable(method())
+        except Exception as exc:
+            summary["sources"] = {"error": str(exc)}
+    return summary
+
+
+def get_fans_operating_point(
+    manager: AedtSessionManager,
+    *,
+    export_file: str | None = None,
+    setup_name: str | None = None,
+    time_step: str | None = None,
+    design_variation: str | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "get_fans_operating_point"):
+        raise AedtError("Active app does not expose get_fans_operating_point.")
+    result = call_with_supported_kwargs(
+        app.get_fans_operating_point,
+        {
+            "export_file": export_file,
+            "setup_name": setup_name,
+            "time_step": time_step,
+            "design_variation": design_variation,
+        },
+    )
+    return {"fans_operating_point": to_jsonable(result)}
+
+
+def export_touchstone_data(
+    manager: AedtSessionManager,
+    *,
+    setup: str | None = None,
+    sweep: str | None = None,
+    output_file: str | None = None,
+    variations: list[Any] | None = None,
+    variations_value: list[Any] | None = None,
+    renormalization: bool = False,
+    impedance: float | None = None,
+    kwargs: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    app = manager.app
+    if not hasattr(app, "export_touchstone"):
+        raise AedtError("Active app does not expose export_touchstone.")
+    export_kwargs = {
+        "setup": setup,
+        "sweep": sweep,
+        "output_file": output_file,
+        "variations": variations,
+        "variations_value": variations_value,
+        "renormalization": renormalization,
+        "impedance": impedance,
+        **dict(kwargs or {}),
+    }
+    result = call_with_supported_kwargs(app.export_touchstone, export_kwargs)
+    return {"method": "export_touchstone", "result": to_jsonable(result)}
+
+
 def post_summary(manager: AedtSessionManager) -> dict[str, Any]:
     post = manager.target("post")
     summary: dict[str, Any] = {}

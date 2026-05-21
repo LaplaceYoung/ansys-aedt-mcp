@@ -37,11 +37,15 @@ from ansysmcp.operations import (
     export_icepak_summary,
     export_matrix_data,
     export_report,
+    export_touchstone_data,
+    get_antenna_data,
     get_evaluated_value,
+    get_fans_operating_point,
     get_monitor_data,
     get_nominal_variation,
     get_output_variable,
     get_profile,
+    get_rcs_data,
     get_setup_properties,
     get_solution_data,
     get_touchstone_data,
@@ -52,6 +56,7 @@ from ansysmcp.operations import (
     import_cad,
     import_dataset,
     insert_design,
+    insert_far_field,
     insert_near_field,
     invoke,
     list_api,
@@ -81,6 +86,7 @@ from ansysmcp.operations import (
     post_operation,
     post_summary,
     project_design_operation,
+    q3d_net_summary,
     q3d_operation,
     read_design_data,
     run_app_method,
@@ -1016,6 +1022,88 @@ def aedt_get_monitor_data() -> dict[str, Any]:
 
 
 @mcp.tool()
+def aedt_insert_far_field(kwargs: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Insert an HFSS infinite-sphere far-field setup."""
+    with manager.locked():
+        return insert_far_field(manager, kwargs=kwargs)
+
+
+@mcp.tool()
+def aedt_get_antenna_data(
+    frequencies: float | list[Any] | None = None,
+    setup: str | None = None,
+    sphere: str | None = None,
+    variations: dict[str, Any] | None = None,
+    overwrite: bool = True,
+    link_to_hfss: bool = True,
+    export_touchstone: bool = True,
+    set_phase_center_per_port: bool = True,
+) -> dict[str, Any]:
+    """Return HFSS antenna data through PyAEDT when the active app supports it."""
+    with manager.locked():
+        return get_antenna_data(
+            manager,
+            frequencies=frequencies,
+            setup=setup,
+            sphere=sphere,
+            variations=variations,
+            overwrite=overwrite,
+            link_to_hfss=link_to_hfss,
+            export_touchstone=export_touchstone,
+            set_phase_center_per_port=set_phase_center_per_port,
+        )
+
+
+@mcp.tool()
+def aedt_get_rcs_data(
+    frequencies: float | list[Any] | None = None,
+    setup: str | None = None,
+    expression: str = "ComplexMonostaticRCSTheta",
+    variations: dict[str, Any] | None = None,
+    overwrite: bool = True,
+    link_to_hfss: bool = True,
+    variation_name: str | None = None,
+) -> dict[str, Any]:
+    """Return HFSS radar cross-section data through PyAEDT when supported."""
+    with manager.locked():
+        return get_rcs_data(
+            manager,
+            frequencies=frequencies,
+            setup=setup,
+            expression=expression,
+            variations=variations,
+            overwrite=overwrite,
+            link_to_hfss=link_to_hfss,
+            variation_name=variation_name,
+        )
+
+
+@mcp.tool()
+def aedt_q3d_net_summary(net_name: str | None = None) -> dict[str, Any]:
+    """Return Q3D net names, sources, sinks, and objects when available."""
+    with manager.locked():
+        return q3d_net_summary(manager, net_name=net_name)
+
+
+@mcp.tool()
+def aedt_get_fans_operating_point(
+    export_file: str | None = None,
+    setup_name: str | None = None,
+    time_step: str | None = None,
+    design_variation: str | None = None,
+) -> dict[str, Any]:
+    """Return Icepak fan operating-point data when supported by the active app."""
+    with manager.locked():
+        return get_fans_operating_point(
+            manager,
+            export_file=export_file,
+            setup_name=setup_name,
+            time_step=time_step,
+            design_variation=design_variation,
+        )
+
+
+@mcp.tool()
 def aedt_post_summary() -> dict[str, Any]:
     """Return report names, report types, field plots, and available post quantities."""
     with manager.locked():
@@ -1057,6 +1145,32 @@ def aedt_export_report(
             report_name=report_name,
             output_path=output_path,
             file_format=file_format,
+        )
+
+
+@mcp.tool()
+def aedt_export_touchstone_data(
+    setup: str | None = None,
+    sweep: str | None = None,
+    output_file: str | None = None,
+    variations: list[Any] | None = None,
+    variations_value: list[Any] | None = None,
+    renormalization: bool = False,
+    impedance: float | None = None,
+    kwargs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Export Touchstone data from HFSS or Circuit apps through PyAEDT."""
+    with manager.locked():
+        return export_touchstone_data(
+            manager,
+            setup=setup,
+            sweep=sweep,
+            output_file=output_file,
+            variations=variations,
+            variations_value=variations_value,
+            renormalization=renormalization,
+            impedance=impedance,
+            kwargs=kwargs,
         )
 
 
@@ -1488,10 +1602,16 @@ def aedt_capabilities_resource() -> dict[str, Any]:
             "aedt_get_traces_for_plot",
             "aedt_get_touchstone_data",
             "aedt_get_monitor_data",
+            "aedt_insert_far_field",
+            "aedt_get_antenna_data",
+            "aedt_get_rcs_data",
+            "aedt_q3d_net_summary",
+            "aedt_get_fans_operating_point",
             "aedt_post_summary",
             "aedt_post_operation",
             "aedt_insert_near_field",
             "aedt_export_report",
+            "aedt_export_touchstone_data",
             "aedt_export_field_plot",
             "aedt_export_diagnostics",
             "aedt_export_matrix_data",

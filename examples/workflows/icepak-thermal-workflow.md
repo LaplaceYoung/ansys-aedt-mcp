@@ -1,6 +1,6 @@
 # Icepak Thermal Workflow
 
-This workflow outlines an Icepak thermal automation path for block creation, material assignment, thermal sources, monitors, solve control, monitor data, and summary export.
+This workflow outlines an Icepak thermal automation path for block creation, material assignment, thermal sources, monitors, solve control, fan operating data, monitor data, and summary export.
 
 ```text
 aedt_environment
@@ -14,9 +14,9 @@ aedt_create_setup(name="Setup1", properties={"Flow Regime": "Laminar"})
 aedt_validate_design(validation_kind="simple")
 aedt_analyze_setup(name="Setup1", cores=8, blocking=true)
 aedt_get_monitor_data
+aedt_get_fans_operating_point(export_file="outputs/fans.csv", setup_name="Setup1")
 aedt_export_icepak_summary(output_dir="outputs", solution_name="Setup1", quantity="Temperature", filename="icepak-summary")
 aedt_save_project(project_path="outputs/icepak-thermal-demo.aedt")
 ```
 
 `aedt_icepak_operation` covers common thermal sources, openings, walls, monitors, fans, network objects, and mesh generation helpers.
-

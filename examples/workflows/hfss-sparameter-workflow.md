@@ -1,6 +1,6 @@
 # HFSS S-Parameter Workflow
 
-This workflow creates a compact HFSS automation path for geometry, variables, ports, setup control, report traces, Touchstone data, and diagnostics.
+This workflow creates a compact HFSS automation path for geometry, variables, ports, setup control, report traces, far-field data, antenna/RCS data, Touchstone export, and diagnostics.
 
 ```text
 aedt_environment
@@ -26,7 +26,11 @@ aedt_post_summary
 aedt_post_operation(method="export_report_to_jpg", args=["outputs", "S11"], kwargs={"width": 1200})
 aedt_get_traces_for_plot(kwargs={"setup": "Setup1"})
 aedt_get_touchstone_data(setup="Setup1")
+aedt_insert_far_field(kwargs={"name": "FF1", "theta_step": 5, "phi_step": 5})
+aedt_get_antenna_data(setup="Setup1", sphere="FF1")
+aedt_get_rcs_data(setup="Setup1", expression="ComplexMonostaticRCSTheta")
 aedt_export_report(report_name="S11", output_path="outputs")
+aedt_export_touchstone_data(setup="Setup1", sweep="Sweep1", output_file="outputs/hfss-sparameter-demo.s2p")
 aedt_export_diagnostics(export_kind="convergence", setup="Setup1", output_file="outputs/convergence.csv")
 aedt_save_project(project_path="outputs/hfss-sparameter-demo.aedt")
 ```
