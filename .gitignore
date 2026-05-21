@@ -1,0 +1,24 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# AEDT project artifacts can be large and machine-specific.
+*.aedtresults/
+*.aedtz
+*.asol
+*.aedt.autosave
+
+# Local runtime state.
+.env
+.env.*
+logs/
+outputs/
+*.log

@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use ansys-aedt-mcp in research or publications, please cite this repository."
+title: "ansys-aedt-mcp: An MCP Server for Ansys Electronics Desktop Automation"
+type: software
+authors:
+  - family-names: "Young"
+    given-names: "Laplace"
+repository-code: "https://github.com/LaplaceYoung/ansys-aedt-mcp"
+license: "PolyForm-Noncommercial-1.0.0"
+keywords:
+  - "Ansys Electronics Desktop"
+  - "AEDT"
+  - "PyAEDT"
+  - "Model Context Protocol"
+  - "HFSS"
+  - "Maxwell"
+  - "Q3D"
+  - "Icepak"

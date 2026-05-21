@@ -1,0 +1,79 @@
+[project]
+name = "ansysmcp"
+version = "0.1.0"
+description = "MCP server for Ansys Electronics Desktop automation through PyAEDT and native AEDT APIs."
+readme = "README.md"
+requires-python = ">=3.10,<3.15"
+license = { text = "PolyForm-Noncommercial-1.0.0" }
+authors = [
+  { name = "ansysmcp maintainers" }
+]
+keywords = [
+  "ansys",
+  "aedt",
+  "electronics-desktop",
+  "pyaedt",
+  "mcp",
+  "model-context-protocol",
+  "hfss",
+  "maxwell",
+  "q3d",
+  "icepak",
+  "simulation",
+  "electromagnetics",
+  "eda",
+  "cae",
+  "ai-agents",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "License :: Other/Proprietary License",
+  "Operating System :: Microsoft :: Windows",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+  "mcp[cli]>=1.23.0",
+  "pyaedt>=0.26.3",
+  "pydantic>=2.7",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "ruff>=0.8",
+]
+
+[project.scripts]
+ansys-aedt-mcp = "ansysmcp.server:main"
+
+[project.urls]
+Homepage = "https://github.com/LaplaceYoung/ansys-aedt-mcp"
+Documentation = "https://github.com/LaplaceYoung/ansys-aedt-mcp#readme"
+Repository = "https://github.com/LaplaceYoung/ansys-aedt-mcp"
+Issues = "https://github.com/LaplaceYoung/ansys-aedt-mcp/issues"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ansysmcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

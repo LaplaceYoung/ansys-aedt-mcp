@@ -1,0 +1,54 @@
+name: Bug report
+description: Report a reproducible issue with ansys-aedt-mcp
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the issue and observed behavior.
+    validations:
+      required: true
+  - type: input
+    id: aedt-version
+    attributes:
+      label: AEDT version
+      placeholder: "2024.2"
+    validations:
+      required: true
+  - type: input
+    id: pyaedt-version
+    attributes:
+      label: PyAEDT version
+      placeholder: "0.27.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: transport
+    attributes:
+      label: MCP transport
+      options:
+        - stdio
+        - streamable-http
+        - sse
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Include tool calls, commands, and minimal project context.
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Redact license keys, hostnames, usernames, and private paths.
+      render: text

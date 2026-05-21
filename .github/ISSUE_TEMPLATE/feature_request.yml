@@ -1,0 +1,44 @@
+name: Feature request
+description: Propose a workflow, solver wrapper, or API coverage improvement
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: Describe the AEDT workflow or MCP use case.
+    validations:
+      required: true
+  - type: dropdown
+    id: solver
+    attributes:
+      label: AEDT area
+      options:
+        - Desktop/native
+        - HFSS
+        - Maxwell 3D
+        - Maxwell 2D
+        - Q3D/Q2D
+        - Icepak
+        - Circuit
+        - Twin Builder
+        - EMIT
+        - RMxprt
+        - Mechanical
+        - Post-processing
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: PyAEDT or AEDT API references
+      description: Link docs or paste method names that should be covered.
+  - type: textarea
+    id: success
+    attributes:
+      label: Success criteria
+      description: Describe the expected tool call and output artifact.
+    validations:
+      required: true

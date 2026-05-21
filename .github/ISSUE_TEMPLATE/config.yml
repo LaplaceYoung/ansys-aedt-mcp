@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: PyAEDT documentation
+    url: https://aedt.docs.pyansys.com/
+    about: Official PyAEDT API reference and examples.
+  - name: MCP documentation
+    url: https://modelcontextprotocol.io/
+    about: Model Context Protocol documentation.

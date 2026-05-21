@@ -1,0 +1,8 @@
+ansys-aedt-mcp
+Copyright (c) 2026 LaplaceYoung and contributors.
+
+This project is an independent MCP server for automating Ansys Electronics Desktop through PyAEDT and AEDT native APIs.
+
+Ansys, Ansys Electronics Desktop, AEDT, HFSS, Maxwell, Q3D, Icepak, and related product names are trademarks or registered trademarks of their respective owners.
+
+This repository is source-available for non-commercial use under PolyForm Noncommercial License 1.0.0.
